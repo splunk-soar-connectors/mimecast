@@ -70,7 +70,8 @@ class MimecastConnector(BaseConnector):
             # so we need to explicitly convert them to 'bytes' (which are binary)
             # We need to convert 'bytes' back to string,
             # as the contents of headers are of the 'string' form
-            encoded_auth_token = base64.b64encode(bytes(('{0}:{1}').format(self._username, self._password), 'utf-8')).decode('utf-8')
+            byte_str = bytes(('{0}:{1}').format(self._username, self._password), 'utf-8')
+            encoded_auth_token = base64.b64encode(byte_str).decode('utf-8')
         headers = {'Authorization': "{} {}".format(auth_type, encoded_auth_token),
            'x-mc-app-id': self._app_id,
            'x-mc-date': "{} UTC".format(datetime.datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S')),
@@ -130,7 +131,10 @@ class MimecastConnector(BaseConnector):
         if response.status_code == 200:
             return RetVal(phantom.APP_SUCCESS, {})
 
-        return RetVal(action_result.set_status(phantom.APP_ERROR, MIMECAST_ERR_EMPTY_RESPONSE.format(code=response.status_code)), None)
+        return RetVal(
+            action_result.set_status(phantom.APP_ERROR, MIMECAST_ERR_EMPTY_RESPONSE.format(code=response.status_code)),
+            None
+        )
 
     def _process_html_response(self, response, action_result):
 
@@ -165,7 +169,10 @@ class MimecastConnector(BaseConnector):
             resp_json = r.json()
         except Exception as e:
             error_msg = self._get_error_message_from_exception(e)
-            return RetVal(action_result.set_status(phantom.APP_ERROR, MIMECAST_ERR_UNABLE_TO_PARSE_JSON_RESPONSE.format(error=error_msg)), None)
+            return RetVal(
+                action_result.set_status(phantom.APP_ERROR, MIMECAST_ERR_UNABLE_TO_PARSE_JSON_RESPONSE.format(error=error_msg)),
+                None
+            )
 
         # Please specify the status codes here
         if not resp_json['fail']:
@@ -285,7 +292,8 @@ class MimecastConnector(BaseConnector):
 
         while True:
 
-            ret_val, interim_response = self._make_rest_call_helper(endpoint, action_result, headers=headers, method=method, data=data, **kwargs)
+            ret_val, interim_response = self._make_rest_call_helper(endpoint, action_result,
+                headers=headers, method=method, data=data, **kwargs)
 
             if phantom.is_fail(ret_val):
                 return ret_val, interim_response
@@ -723,7 +731,8 @@ class MimecastConnector(BaseConnector):
             if limit is None:
                 return action_result.get_status()
 
-        ret_val, response = self._paginator(uri, action_result, limit=limit, headers=headers, method="post", data=data, data_key="folders")
+        ret_val, response = self._paginator(uri, action_result, limit=limit, headers=headers,
+                                            method="post", data=data, data_key="folders")
 
         if phantom.is_fail(ret_val):
             return ret_val
@@ -767,7 +776,8 @@ class MimecastConnector(BaseConnector):
             if limit is None:
                 return action_result.get_status()
 
-        ret_val, response = self._paginator(uri, action_result, limit=limit, headers=headers, method="post", data=data, data_key="groupMembers")
+        ret_val, response = self._paginator(uri, action_result, limit=limit, headers=headers,
+                                            method="post", data=data, data_key="groupMembers")
 
         if phantom.is_fail(ret_val):
             return ret_val
