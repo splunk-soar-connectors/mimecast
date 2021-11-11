@@ -23,14 +23,13 @@ import json
 import uuid
 
 import dateutil.parser
+import phantom.app as phantom
 import requests
 from bs4 import BeautifulSoup, UnicodeDammit
-
-# Phantom App imports
-import phantom.app as phantom
-from mimecast_consts import *
 from phantom.action_result import ActionResult
 from phantom.base_connector import BaseConnector
+
+from mimecast_consts import *
 
 
 class RetVal(tuple):
@@ -1099,8 +1098,9 @@ class MimecastConnector(BaseConnector):
 
 if __name__ == '__main__':
 
-    import pudb
     import argparse
+
+    import pudb
 
     pudb.set_trace()
 
