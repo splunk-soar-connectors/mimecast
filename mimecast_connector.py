@@ -14,23 +14,23 @@
 # and limitations under the License.
 #
 #
+
+import base64
+import datetime
+import hashlib
+import hmac
+import json
+import uuid
+
+import dateutil.parser
+import requests
+from bs4 import BeautifulSoup, UnicodeDammit
+
 # Phantom App imports
 import phantom.app as phantom
-from phantom.base_connector import BaseConnector
-from phantom.action_result import ActionResult
-
-# Usage of the consts file is recommended
 from mimecast_consts import *
-import requests
-import json
-from bs4 import BeautifulSoup
-import uuid
-import base64
-import hmac
-import datetime
-import dateutil.parser
-import hashlib
-from bs4 import UnicodeDammit
+from phantom.action_result import ActionResult
+from phantom.base_connector import BaseConnector
 
 
 class RetVal(tuple):
