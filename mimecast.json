@@ -12,6 +12,7 @@
     "license": "Copyright (c) 2019-2022 Splunk Inc.",
     "app_version": "2.1.2",
     "python_version": "3",
+    "fips_compliant": true,
     "utctime_updated": "2021-11-10T17:45:09.000000Z",
     "package_name": "phantom_mimecast",
     "main_module": "mimecast_connector.py",
