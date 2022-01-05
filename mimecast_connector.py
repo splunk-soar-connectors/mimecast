@@ -14,23 +14,21 @@
 # and limitations under the License.
 #
 #
-# Phantom App imports
-import phantom.app as phantom
-from phantom.base_connector import BaseConnector
-from phantom.action_result import ActionResult
-
-# Usage of the consts file is recommended
-from mimecast_consts import *
-import requests
-import json
-from bs4 import BeautifulSoup
-import uuid
 import base64
-import hmac
 import datetime
-import dateutil.parser
 import hashlib
-from bs4 import UnicodeDammit
+import hmac
+import json
+import uuid
+
+import dateutil.parser
+import phantom.app as phantom
+import requests
+from bs4 import BeautifulSoup, UnicodeDammit
+from phantom.action_result import ActionResult
+from phantom.base_connector import BaseConnector
+
+from mimecast_consts import *
 
 
 class RetVal(tuple):
@@ -1089,8 +1087,9 @@ class MimecastConnector(BaseConnector):
 
 if __name__ == '__main__':
 
-    import pudb
     import argparse
+
+    import pudb
 
     pudb.set_trace()
 

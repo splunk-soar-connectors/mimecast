@@ -10,7 +10,7 @@
     the corresponding action blocks to ensure the correct functioning of the playbooks created on
     the earlier versions of the app. The following actions names have been updated:
 
-      
+
 
     -   \[blacklist url\] to \[blocklist url\]
     -   \[unblacklist url\] to \[unblocklist url\]
@@ -28,11 +28,11 @@
 ## Authorization
 
 Upon installing Mimecast and configuring your asset, you will not have an accessKey or secretKey
-(together known as a binding) that is required by Mimecast upon each call to its API.  
+(together known as a binding) that is required by Mimecast upon each call to its API.
 When you run the first Mimecast action or test connectivity on the asset, your accessKey and
-secretKey will be generated and saved in your instance.  
+secretKey will be generated and saved in your instance.
 Every action run will be using the same accessKey and secretKey that was saved to avoid generating
-new keys on every request.  
+new keys on every request.
 It is important to note that your accessKey and secretKey binding may expire after the period of
 time defined in the Authentication Cache TTL setting in the service user's effective Authentication
 Profile (accessible through the Mimecast Administration Console under
