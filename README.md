@@ -10,7 +10,7 @@ Minimum Product Version: 4\.9\.39220
 
 This app integrates with an instance of Mimecast to perform generic, investigative, and containment actions
 
-[comment]: # " File: readme.md"
+[comment]: # " File: README.md"
 [comment]: # "  Copyright (c) 2019-2022 Splunk Inc."
 [comment]: # "  Licensed under the Apache License, Version 2.0 (the 'License');"
 [comment]: # "  you may not use this file except in compliance with the License."
@@ -103,6 +103,15 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 [run query](#action-run-query) - Get emails across the Mimecast platform  
 [get email](#action-get-email) - Returns message information for a tracked email  
 [decode url](#action-decode-url) - Decodes URL that was rewritten by Mimecast for on\-click protection  
+
+## Port Information
+
+The app uses HTTP/ HTTPS protocol for communicating with the Mimecast server. Below are the default ports used by Splunk SOAR.
+
+SERVICE NAME | TRANSPORT PROTOCOL | PORT
+------------ | ------------------ | ----
+**http** | tcp | 80
+**https** | tcp | 443
 
 ## action: 'test connectivity'
 Validate the asset configuration for connectivity using supplied configuration
