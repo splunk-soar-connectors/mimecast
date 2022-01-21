@@ -1,9 +1,17 @@
-# --
 # File: mimecast_consts.py
-# Copyright (c) 2019-2021 Splunk Inc.
 #
-# Licensed under Apache 2.0 (https://www.apache.org/licenses/LICENSE-2.0.txt)
-
+# Copyright (c) 2019-2022 Splunk Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software distributed under
+# the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied. See the License for the specific language governing permissions
+# and limitations under the License.
 MIMECAST_ERR_EMPTY_RESPONSE = "Status Code {code}. Empty response and no information in the header"
 MIMECAST_UNABLE_TO_PARSE_ERR_DETAILS = "Cannot parse error details"
 MIMECAST_ERR_UNABLE_TO_PARSE_JSON_RESPONSE = "Unable to parse response as JSON. {error}"
@@ -29,4 +37,5 @@ MIMECAST_SUCC_GET_EMAIL = "Successfully retrieved message information"
 MIMECAST_SUCC_DECODE_URL = "Successfully decoded URL"
 MIMECAST_ERR_ENCODING_SECRET_KEY = "Error occurred while encoding secret key. Please provide a valid secret key value."
 MIMECAST_ERR_BYPASS_AUTH = "Please provide Mimecast 'Secret Key' and 'Access Key' for Bypass Authentication"
-MIMECAST_STATE_FILE_CORRUPT_ERR = "Error occurred while loading the state file due to its unexpected format. Resetting the state file with the default format. Please try again"
+MIMECAST_STATE_FILE_CORRUPT_ERR = "Error occurred while loading the state file due to its unexpected format. \
+Resetting the state file with the default format. Please try again"

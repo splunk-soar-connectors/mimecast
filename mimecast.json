@@ -9,13 +9,14 @@
     "product_name": "Mimecast",
     "product_version_regex": ".*",
     "publisher": "Splunk",
-    "license": "Copyright (c) 2019-2021 Splunk Inc.",
-    "app_version": "2.1.1",
+    "license": "Copyright (c) 2019-2022 Splunk Inc.",
+    "app_version": "2.2.1",
     "python_version": "3",
-    "utctime_updated": "2021-08-31T06:03:11.000000Z",
+    "fips_compliant": true,
+    "utctime_updated": "2022-01-20T06:14:50.000000Z",
     "package_name": "phantom_mimecast",
     "main_module": "mimecast_connector.py",
-    "min_phantom_version": "4.9.39220",
+    "min_phantom_version": "5.0.0",
     "app_wizard_version": "1.0.0",
     "latest_tested_versions": [
         "Cloud, v1.5.11 2021"
@@ -4319,5 +4320,45 @@
             },
             "versions": "EQ(*)"
         }
-    ]
+    ],
+    "pip_dependencies": {
+        "wheel": [
+            {
+                "module": "beautifulsoup4",
+                "input_file": "wheels/beautifulsoup4-4.9.1-py3-none-any.whl"
+            },
+            {
+                "module": "certifi",
+                "input_file": "wheels/certifi-2021.10.8-py2.py3-none-any.whl"
+            },
+            {
+                "module": "chardet",
+                "input_file": "wheels/chardet-3.0.4-py2.py3-none-any.whl"
+            },
+            {
+                "module": "idna",
+                "input_file": "wheels/idna-2.10-py2.py3-none-any.whl"
+            },
+            {
+                "module": "python_dateutil",
+                "input_file": "wheels/python_dateutil-2.8.1-py2.py3-none-any.whl"
+            },
+            {
+                "module": "requests",
+                "input_file": "wheels/requests-2.25.0-py2.py3-none-any.whl"
+            },
+            {
+                "module": "six",
+                "input_file": "wheels/six-1.16.0-py2.py3-none-any.whl"
+            },
+            {
+                "module": "soupsieve",
+                "input_file": "wheels/soupsieve-2.3.1-py3-none-any.whl"
+            },
+            {
+                "module": "urllib3",
+                "input_file": "wheels/urllib3-1.26.7-py2.py3-none-any.whl"
+            }
+        ]
+    }
 }
