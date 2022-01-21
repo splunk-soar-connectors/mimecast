@@ -2,11 +2,11 @@
 # Mimecast
 
 Publisher: Splunk  
-Connector Version: 2\.1\.3  
+Connector Version: 2\.2\.1  
 Product Vendor: Mimecast  
 Product Name: Mimecast  
 Product Version Supported (regex): "\.\*"  
-Minimum Product Version: 4\.9\.39220  
+Minimum Product Version: 5\.0\.0  
 
 This app integrates with an instance of Mimecast to perform generic, investigative, and containment actions
 
@@ -71,6 +71,16 @@ you do not have to deal with expired authentication.
 parameter to remove the URL from the blocklist and allowlist. Hence, removing the URL from the
 allowlist will automatically remove the URL from the blocklist as well.
 
+## Port Information
+
+The app uses HTTP/ HTTPS protocol for communicating with the Mimecast server. Below are the default
+ports used by Splunk SOAR.
+
+| SERVICE NAME | TRANSPORT PROTOCOL | PORT |
+|--------------|--------------------|------|
+| **http**     | tcp                | 80   |
+| **https**    | tcp                | 443  |
+
 
 ### Configuration Variables
 The below configuration variables are required for this Connector to operate.  These variables are specified when configuring a Mimecast asset in SOAR.
@@ -103,15 +113,6 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 [run query](#action-run-query) - Get emails across the Mimecast platform  
 [get email](#action-get-email) - Returns message information for a tracked email  
 [decode url](#action-decode-url) - Decodes URL that was rewritten by Mimecast for on\-click protection  
-
-## Port Information
-
-The app uses HTTP/ HTTPS protocol for communicating with the Mimecast server. Below are the default ports used by Splunk SOAR.
-
-SERVICE NAME | TRANSPORT PROTOCOL | PORT
------------- | ------------------ | ----
-**http** | tcp | 80
-**https** | tcp | 443
 
 ## action: 'test connectivity'
 Validate the asset configuration for connectivity using supplied configuration
