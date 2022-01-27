@@ -10,7 +10,7 @@
     "product_version_regex": ".*",
     "publisher": "Splunk",
     "license": "Copyright (c) 2019-2022 Splunk Inc.",
-    "app_version": "2.2.1",
+    "app_version": "2.3.0",
     "python_version": "3",
     "fips_compliant": true,
     "utctime_updated": "2022-01-20T06:14:50.000000Z",
@@ -4365,7 +4365,7 @@
             },
             {
                 "module": "urllib3",
-                "input_file": "wheels/urllib3-1.26.7-py2.py3-none-any.whl"
+                "input_file": "wheels/urllib3-1.26.8-py2.py3-none-any.whl"
             }
         ]
     }
