@@ -316,10 +316,10 @@ class MimecastConnector(BaseConnector):
                 else:
                     response['data'][0][data_key] = response['data'][0].get(data_key, [])[:limit]
                 break
-            nextToken = interim_response['meta']['pagination'].get('next')
+            next_token = interim_response['meta']['pagination'].get('next')
 
-            if nextToken:
-                data['meta']['pagination']['pageToken'] = nextToken
+            if next_token:
+                data['meta']['pagination']['pageToken'] = next_token
             else:
                 break
 
@@ -450,7 +450,14 @@ class MimecastConnector(BaseConnector):
 
         return action_result.set_status(phantom.APP_SUCCESS)
 
-    def _handle_remove_url(self, param):
+    def _handle_unblocklist_url(self, param):
+
+        self.debug_print("In action handler for: {0}".format(self.get_action_identifier()))
+
+        self.debug_print("Calling unallowlist_url as both action uses same endpoint")
+        return self._handle_unallowlist_url(param)
+
+    def _handle_unallowlist_url(self, param):
 
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
 
@@ -614,6 +621,13 @@ class MimecastConnector(BaseConnector):
         summary['status'] = MIMECAST_SUCC_REMOVE_MEMBER
 
         return action_result.set_status(phantom.APP_SUCCESS)
+
+    def _handle_allowlist_sender(self, param):
+
+        self.debug_print("In action handler for: {0}".format(self.get_action_identifier()))
+
+        self.debug_print("Calling blocklist_sender as both action uses same endpoint")
+        return self._handle_blocklist_sender(param)
 
     def _handle_blocklist_sender(self, param):
 
@@ -831,24 +845,24 @@ class MimecastConnector(BaseConnector):
             try:
                 response['members'] = response.pop('data')
 
-                groupMembers = response['members'][0]['groupMembers']
-                nextToken = response['meta']['pagination'].get('next')
+                group_members = response['members'][0]['groupMembers']
+                next_token = response['meta']['pagination'].get('next')
             except Exception:
                 return action_result.set_status(phantom.APP_ERROR, MIMECAST_ERR_PROCESSING_RESPONSE)
 
-            # Successful if member found, fails if nextToken does not exist, repeats loop if nextToken exists
-            for each_member in groupMembers:
+            # Successful if member found, fails if next_token does not exist, repeats loop if next_token exists
+            for each_member in group_members:
                 if each_member[search_type] == member:
                     action_result.add_data(each_member)
                     summary = action_result.update_summary({})
                     summary['status'] = "Found Member!"
                     return action_result.set_status(phantom.APP_SUCCESS)
-            if nextToken is None:
+            if next_token is None:
                 summary = action_result.update_summary({})
                 summary['status'] = "Member does not exist"
                 return action_result.set_status(phantom.APP_SUCCESS)
             else:
-                data['meta']['pagination']['pageToken'] = nextToken
+                data['meta']['pagination']['pageToken'] = next_token
 
     def _handle_run_query(self, param):
 
@@ -1012,13 +1026,13 @@ class MimecastConnector(BaseConnector):
             ret_val = self._handle_blocklist_url(param)
 
         elif action_id == 'unblocklist_url':
-            ret_val = self._handle_remove_url(param)
+            ret_val = self._handle_unblocklist_url(param)
 
         elif action_id == 'allowlist_url':
             ret_val = self._handle_allowlist_url(param)
 
         elif action_id == 'unallowlist_url':
-            ret_val = self._handle_remove_url(param)
+            ret_val = self._handle_unallowlist_url(param)
 
         elif action_id == 'add_member':
             ret_val = self._handle_add_member(param)
@@ -1030,7 +1044,7 @@ class MimecastConnector(BaseConnector):
             ret_val = self._handle_blocklist_sender(param)
 
         elif action_id == 'allowlist_sender':
-            ret_val = self._handle_blocklist_sender(param)
+            ret_val = self._handle_allowlist_sender(param)
 
         elif action_id == 'list_urls':
             ret_val = self._handle_list_urls(param)
@@ -1060,7 +1074,7 @@ class MimecastConnector(BaseConnector):
         # that needs to be accessed across actions
         self._state = self.load_state()
         if not isinstance(self._state, dict):
-            self.debug_print("Reseting the state file with the default format")
+            self.debug_print("Resetting the state file with the default format")
             self._state = {
                 "app_version": self.get_app_json().get('app_version')
             }

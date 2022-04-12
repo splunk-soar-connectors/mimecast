@@ -48,32 +48,18 @@
 
 <h2>Authorization</h2>
 
-    Upon installing Mimecast and configuring your asset, you will not have an accessKey or secretKey (together known as a
-    binding) that is required by Mimecast upon each call to its API.<br></br>
-    When you run the first Mimecast action or test connectivity on the asset, your accessKey and secretKey will be generated
-    and saved in your instance.<br></br>
-    Every action run will be using the same accessKey and secretKey that was saved to avoid generating new keys on every
-    request.<br></br>
-
-    It is important to note that your accessKey and secretKey binding may expire after the period of time defined in the
-    Authentication Cache TTL setting in the service user's effective Authentication Profile (accessible through the Mimecast
-    Administration Console under Services>Applications>Authentication Profiles). It is recommended to set this to "Never
-    Expires" so you do not have to deal with expired authentication.
+    <p>To create an API application and user association key ('Access Key' and 'Secret Key' for bypass authentication), please refer to the <a href="https://community.mimecast.com/s/article/Managing-API-Applications-505230018" target="_blank">Mimecast document</a>.</p>
+    <p>For the 'Mimecast Base URL' configuration field, please refer to the <a href="https://integrations.mimecast.com/documentation/api-overview/global-base-urls/" target="_blank">Global Base URLS</a> article. You can select URL based on your Mimecast region.</p>
 
     <h2>Points to remember while connecting to Mimecast</h2>
     <ul>
-      <li><b>IP Range Restrictions:</b> Be sure to enable your Mimecast to accept communication with the IP address of your
-        Phantom server(s).</li>
-      <li><b>Two Factor Authentication:</b> Mimecast supports optional two-factor authentication. Two-factor authentication
-        should be disabled for the account
-        that is used to handle API communication with Phantom.</li>
+      <li><b>IP Range Restrictions:</b> Be sure to enable your Mimecast to accept communication with the IP address of your Splunk SOAR server(s).</li>
+      <li><b>Two Factor Authentication:</b> Mimecast supports optional two-factor authentication. Two-factor authentication should be disabled for the account that handles API interactions with Splunk SOAR in order to use 'Cloud' or 'Domain' authentication.</li>
     </ul>
 
     <p>
       <b>Note:</b>
-      The 'unblocklist url' and 'unallowlist url' actions use the same API endpoint and action parameter to remove the URL from the
-      blocklist and allowlist. Hence, removing the URL from the allowlist will automatically remove the URL from the
-      blocklist as well.
+      The 'unblocklist url' and 'unallowlist url' actions use the same API endpoint and action parameter to remove the URL from the blocklist and allowlist. Hence, removing the URL from the allowlist will automatically remove the URL from the blocklist as well.
     </p>
     <h2 id="port-information">Port Information</h2>
     <p>The app uses HTTP/ HTTPS protocol for communicating with the Mimecast server. Below are the default ports used by Splunk SOAR.</p>
