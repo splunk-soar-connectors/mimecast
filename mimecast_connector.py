@@ -63,7 +63,7 @@ class MimecastConnector(BaseConnector):
         auth_type = 'Basic-AD' if self._auth_type == 'Domain' else 'Basic-Cloud'
         try:
             encoded_auth_token = base64.b64encode(('{0}:{1}').format(self._username, self._password))
-        except:
+        except Exception:
             # In Python v3, strings are not binary,
             # so we need to explicitly convert them to 'bytes' (which are binary)
             # We need to convert 'bytes' back to string,
@@ -150,7 +150,7 @@ class MimecastConnector(BaseConnector):
             split_lines = error_text.split('\n')
             split_lines = [x.strip() for x in split_lines if x.strip()]
             error_text = '\n'.join(split_lines)
-        except:
+        except Exception:
             error_text = MIMECAST_UNABLE_TO_PARSE_ERR_DETAILS
 
         message = "Status Code: {0}. Data from server:\n{1}\n".format(status_code,
@@ -228,7 +228,7 @@ class MimecastConnector(BaseConnector):
                     return None
                 parameter = int(parameter)
 
-            except:
+            except Exception:
                 action_result.set_status(phantom.APP_ERROR, MIMECAST_ERR_INVALID_INT.format(key=key))
                 return None
 
@@ -247,27 +247,24 @@ class MimecastConnector(BaseConnector):
         :return: error message
         """
 
+        error_code = MIMECAST_ERR_CODE_UNAVAILABLE
+        error_msg = MIMECAST_ERR_MSG_UNKNOWN
         try:
             if e.args:
                 if len(e.args) > 1:
                     error_code = e.args[0]
                     error_msg = e.args[1]
                 elif len(e.args) == 1:
-                    error_code = MIMECAST_ERR_CODE_UNAVAILABLE
                     error_msg = e.args[0]
-            else:
-                error_code = MIMECAST_ERR_CODE_UNAVAILABLE
-                error_msg = MIMECAST_ERR_MSG_UNKNOWN
-        except:
-            error_code = MIMECAST_ERR_CODE_UNAVAILABLE
-            error_msg = MIMECAST_ERR_MSG_UNKNOWN
+        except Exception:
+            self.debug_print("Error occurred while retrieving exception information")
 
         try:
             if error_code in MIMECAST_ERR_CODE_UNAVAILABLE:
                 error_text = "Error Message: {0}".format(error_msg)
             else:
                 error_text = "Error Code: {0}. Error Message: {1}".format(error_code, error_msg)
-        except:
+        except Exception:
             self.debug_print(MIMECAST_PARSE_ERR_MSG)
             error_text = MIMECAST_PARSE_ERR_MSG
 
@@ -373,7 +370,8 @@ class MimecastConnector(BaseConnector):
                             headers=headers,
                             json=data,
                             verify=config.get('verify_server_cert', False),
-                            params=params)
+                            params=params,
+                            timeout=DEFAULT_TIMEOUT)
         except requests.exceptions.InvalidSchema:
             err_msg = 'Error connecting to server. No connection adapters were found for {}'.format(url)
             return RetVal(action_result.set_status(phantom.APP_ERROR, err_msg), resp_json)
@@ -1142,7 +1140,7 @@ if __name__ == '__main__':
         try:
             print("Accessing the Login page")
             login_url = '{}login'.format(BaseConnector._get_phantom_base_url())
-            r = requests.get(login_url, verify=verify)    # nosemgrep: python.requests.best-practice.use-timeout.use-timeout
+            r = requests.get(login_url, verify=verify, timeout=DEFAULT_TIMEOUT)
             csrftoken = r.cookies['csrftoken']
 
             data = dict()
@@ -1155,8 +1153,7 @@ if __name__ == '__main__':
             headers['Referer'] = login_url
 
             print("Logging into Platform to get the session id")
-            r2 = requests.post(     # nosemgrep: python.requests.best-practice.use-timeout.use-timeout
-                    login_url, verify=verify, data=data, headers=headers)
+            r2 = requests.post(login_url, verify=verify, data=data, headers=headers, timeout=DEFAULT_TIMEOUT)
             session_id = r2.cookies['sessionid']
         except Exception as e:
             print("Unable to get session id from the platfrom. Error: {}".format(str(e)))

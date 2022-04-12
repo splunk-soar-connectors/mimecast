@@ -19,6 +19,7 @@ MIMECAST_ERR_INVALID_INT = "Please provide a valid integer value in the '{key}' 
 MIMECAST_ERR_NEGATIVE_AND_ZERO_INT = "Please provide a valid non-zero positive integer value in the '{key}' parameter"
 MIMECAST_ERR_NEGATIVE_INT = "Please provide a valid non-negative integer value in the '{key}' parameter"
 DEFAULT_MAX_RESULTS = 100
+DEFAULT_TIMEOUT = 30
 MIMECAST_ERR_CODE_UNAVAILABLE = "Error code unavailable"
 MIMECAST_ERR_MSG_UNKNOWN = "Unknown error occurred. Please check the asset configuration and|or action parameters"
 MIMECAST_PARSE_ERR_MSG = "Unable to parse the error message. Please check the asset configuration and|or action parameters"
