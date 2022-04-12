@@ -109,7 +109,7 @@ class MimecastConnector(BaseConnector):
         encoded_msg = UnicodeDammit(':'.join([hdr_date, request_id, uri, self._app_key])).unicode_markup.encode("utf-8")
         try:
             hmac_sha1 = hmac.new(base64.b64decode(encoded_secret_key), encoded_msg, digestmod=hashlib.sha1).digest()
-            sig = base64.encodestring(hmac_sha1).rstrip()
+            sig = base64.encodebytes(hmac_sha1).rstrip()
         except Exception as e:
             self.debug_print(self._get_error_message_from_exception(e))
             self.save_progress(MIMECAST_ERR_ENCODING_SECRET_KEY)
