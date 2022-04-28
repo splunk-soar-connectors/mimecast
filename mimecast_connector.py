@@ -22,6 +22,7 @@ import json
 import uuid
 
 import dateutil.parser
+import encryption_helper
 import phantom.app as phantom
 import requests
 from bs4 import BeautifulSoup, UnicodeDammit
@@ -57,6 +58,7 @@ class MimecastConnector(BaseConnector):
         self._auth_type = None
         self._access_key = None
         self._secret_key = None
+        self._asset_id = None
 
     def _login(self, action_result):
         uri = '/api/login/login'
@@ -1086,6 +1088,8 @@ class MimecastConnector(BaseConnector):
         self._app_key = config['app_key']
         self._auth_type = config['auth_type']
 
+        self._asset_id = self.get_asset_id()
+
         if self._auth_type == "Bypass (Access Key)":
             self._access_key = config.get('access_key')
             self._secret_key = config.get('secret_key')
@@ -1093,16 +1097,20 @@ class MimecastConnector(BaseConnector):
                 return self.set_status(phantom.APP_ERROR, MIMECAST_ERR_BYPASS_AUTH)
         else:
             self._access_key = self._state.get('access_key')
+            if self._access_key:
+                self._access_key = encryption_helper.decrypt(self._access_key, self._asset_id)  # pylint: disable=E1101
             self._secret_key = self._state.get('secret_key')
+            if self._secret_key:
+                self._secret_key = encryption_helper.decrypt(self._secret_key, self._asset_id)  # pylint: disable=E1101
         self.save_progress(self._auth_type)
         return phantom.APP_SUCCESS
 
     def finalize(self):
 
         # Save the state, this data is saved across actions and app upgrades
-        if self._auth_type and self._auth_type != "Bypass (Access Key)":
-            self._state['access_key'] = self._access_key
-            self._state['secret_key'] = self._secret_key
+        if self._auth_type != "Bypass (Access Key)" and self._access_key and self._secret_key:
+            self._state['access_key'] = encryption_helper.encrypt(self._access_key, self._asset_id)  # pylint: disable=E1101
+            self._state['secret_key'] = encryption_helper.encrypt(self._secret_key, self._asset_id)  # pylint: disable=E1101
         self.save_state(self._state)
         return phantom.APP_SUCCESS
 
