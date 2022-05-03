@@ -39,7 +39,3 @@ MIMECAST_SUCC_DECODE_URL = "Successfully decoded URL"
 # pragma: allowlist nextline secret
 MIMECAST_ERR_ENCODING_SECRET_KEY = "Error occurred while encoding secret key. Please provide a valid secret key value."
 MIMECAST_ERR_BYPASS_AUTH = "Please provide Mimecast 'Secret Key' and 'Access Key' for Bypass Authentication"
-MIMECAST_STATE_FILE_DECRYPTION_ERR = "Error occurred while decrypting the state file. " \
-    "Resetting the state file with the default format. Please try again."
-MIMECAST_STATE_FILE_CORRUPT_ERR = "Error occurred while loading the state file due to its unexpected format. " \
-    "Resetting the state file with the default format. Please try again."

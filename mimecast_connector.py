@@ -93,7 +93,7 @@ class MimecastConnector(BaseConnector):
         return action_result.set_status(phantom.APP_SUCCESS, "Successfully set accessKey and secretKey")
 
     def _get_request_headers(self, uri, action_result, expired=False):
-        if self._access_key is None or self._secret_key is None:
+        if not self._access_key or not self._secret_key:
             self._login(action_result)
             if action_result.get_status() is False:
                 self.save_progress("Failed login with given credentials")
@@ -1069,19 +1069,19 @@ class MimecastConnector(BaseConnector):
 
         return ret_val
 
-    def reset_state_file(self):
+    def _reset_state_file(self):
+        """
+        This method resets the state file.
+        """
         self.debug_print("Resetting the state file with the default format")
-        self._state = {
-            "app_version": self.get_app_json().get('app_version')
-        }
+        self._state = {"app_version": self.get_app_json().get('app_version')}
 
     def initialize(self):
         # Load the state in initialize, use it to store data
         # that needs to be accessed across actions
         self._state = self.load_state()
         if not isinstance(self._state, dict):
-            self.reset_state_file()
-            return self.set_status(phantom.APP_ERROR, MIMECAST_STATE_FILE_CORRUPT_ERR)
+            self._reset_state_file()
 
         config = self.get_config()
         self._base_url = config['base_url'].rstrip('/')
@@ -1101,14 +1101,16 @@ class MimecastConnector(BaseConnector):
         else:
             try:
                 self._access_key = self._state.get('access_key')
-                if self._access_key and self._state.get('is_encrypted'):
-                    self._access_key = encryption_helper.decrypt(self._access_key, self._asset_id)  # pylint: disable=E1101
+                if self._access_key:
+                    self._access_key = encryption_helper.decrypt(self._access_key, self._asset_id)
                 self._secret_key = self._state.get('secret_key')
-                if self._secret_key and self._state.get('is_encrypted'):
-                    self._secret_key = encryption_helper.decrypt(self._secret_key, self._asset_id)  # pylint: disable=E1101
-            except Exception:
-                self.reset_state_file()
-                return self.set_status(phantom.APP_ERROR, MIMECAST_STATE_FILE_DECRYPTION_ERR)
+                if self._secret_key:
+                    self._secret_key = encryption_helper.decrypt(self._secret_key, self._asset_id)
+            except Exception as e:
+                self.debug_print("Error occurred while decrypting the state file. {}".format(str(e)))
+                self._reset_state_file()
+                self._access_key = None
+                self._secret_key = None
 
         self.save_progress(self._auth_type)
         return phantom.APP_SUCCESS
@@ -1117,9 +1119,13 @@ class MimecastConnector(BaseConnector):
 
         # Save the state, this data is saved across actions and app upgrades
         if self._auth_type != "Bypass (Access Key)" and self._access_key and self._secret_key:
-            self._state['access_key'] = encryption_helper.encrypt(self._access_key, self._asset_id)  # pylint: disable=E1101
-            self._state['secret_key'] = encryption_helper.encrypt(self._secret_key, self._asset_id)  # pylint: disable=E1101
-            self._state['is_encrypted'] = True
+            try:
+                self._state['access_key'] = encryption_helper.encrypt(self._access_key, self._asset_id)
+                self._state['secret_key'] = encryption_helper.encrypt(self._secret_key, self._asset_id)
+            except Exception as e:
+                self.debug_print("Error occurred while encrypting the state file. {}".format(str(e)))
+                self._reset_state_file()
+
         self.save_state(self._state)
         return phantom.APP_SUCCESS
 
