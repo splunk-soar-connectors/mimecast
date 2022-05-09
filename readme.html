@@ -51,6 +51,8 @@
     <p>To create an API application and user association key ('Access Key' and 'Secret Key' for bypass authentication), please refer to the <a href="https://community.mimecast.com/s/article/Managing-API-Applications-505230018" target="_blank">Mimecast document</a>.</p>
     <p>For the 'Mimecast Base URL' configuration field, please refer to the <a href="https://integrations.mimecast.com/documentation/api-overview/global-base-urls/" target="_blank">Global Base URLS</a> article. You can select URL based on your Mimecast region.</p>
 
+    <p>The app uses key-based authentication. For the "Bypass" authentication, the keys provided by the user are considered. For the "Domain" and "Cloud" authentication, the 'test connectivity' action fetches new keys in exchange for the provided username and password. The app uses these keys for authentication. The newly fetched keys are encrypted and stored in the state file for future use. If the stored keys expire or get corrupted, the app automatically generates a new one.</p>
+
     <h2>Points to remember while connecting to Mimecast</h2>
     <ul>
       <li><b>IP Range Restrictions:</b> Be sure to enable your Mimecast to accept communication with the IP address of your Splunk SOAR server(s).</li>
