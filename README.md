@@ -2,11 +2,11 @@
 # Mimecast
 
 Publisher: Splunk  
-Connector Version: 2\.2\.1  
+Connector Version: 2\.3\.5  
 Product Vendor: Mimecast  
 Product Name: Mimecast  
 Product Version Supported (regex): "\.\*"  
-Minimum Product Version: 5\.0\.0  
+Minimum Product Version: 5\.2\.0  
 
 This app integrates with an instance of Mimecast to perform generic, investigative, and containment actions
 
@@ -39,33 +39,42 @@ This app integrates with an instance of Mimecast to perform generic, investigati
     -   \[blacklist sender\] to \[blocklist sender\]
     -   \[whitelist sender\] to \[allowlist sender\]
 
--   Added new paremeter in the action given below. Hence, it is requested to the end-user to please
+-   Added new parameter in the action given below. Hence, it is requested to the end-user to please
     update their existing playbooks by re-inserting \| modifying \| deleting the corresponding
     action blocks or by providing appropriate values to these action parameters to ensure the
     correct functioning of the playbooks created on the earlier versions of the app.
     -   list urls - 'max_results' parameter has been added
 
+## SDK and SDK Licensing details for the app
+
+### python_dateutil
+
+This app uses the python_dateutil module, which is licensed under the Apache Software License, BSD
+License (Dual License), Copyright (c) Gustavo Niemeyer.
+
 ## Authorization
 
-Upon installing Mimecast and configuring your asset, you will not have an accessKey or secretKey
-(together known as a binding) that is required by Mimecast upon each call to its API.  
-When you run the first Mimecast action or test connectivity on the asset, your accessKey and
-secretKey will be generated and saved in your instance.  
-Every action run will be using the same accessKey and secretKey that was saved to avoid generating
-new keys on every request.  
-It is important to note that your accessKey and secretKey binding may expire after the period of
-time defined in the Authentication Cache TTL setting in the service user's effective Authentication
-Profile (accessible through the Mimecast Administration Console under
-Services>Applications>Authentication Profiles). It is recommended to set this to "Never Expires" so
-you do not have to deal with expired authentication.
+To create an API application and user association key ('Access Key' and 'Secret Key' for bypass
+authentication), please refer to the [Mimecast
+document](https://community.mimecast.com/s/article/Managing-API-Applications-505230018) .
+
+For the 'Mimecast Base URL' configuration field, please refer to the [Global Base
+URLS](https://integrations.mimecast.com/documentation/api-overview/global-base-urls/) article. You
+can select URL based on your Mimecast region.
+
+The app uses key-based authentication. For the "Bypass" authentication, the keys provided by the
+user are considered. For the "Domain" and "Cloud" authentication, the 'test connectivity' action
+fetches new keys in exchange for the provided username and password. The app uses these keys for
+authentication. The newly fetched keys are encrypted and stored in the state file for future use. If
+the stored keys expire or get corrupted, the app automatically generates a new one.
 
 ## Points to remember while connecting to Mimecast
 
 -   **IP Range Restrictions:** Be sure to enable your Mimecast to accept communication with the IP
-    address of your Phantom server(s).
+    address of your Splunk SOAR server(s).
 -   **Two Factor Authentication:** Mimecast supports optional two-factor authentication. Two-factor
-    authentication should be disabled for the account that is used to handle API communication with
-    Phantom.
+    authentication should be disabled for the account that handles API interactions with Splunk SOAR
+    in order to use 'Cloud' or 'Domain' authentication.
 
 **Note:** The 'unblocklist url' and 'unallowlist url' actions use the same API endpoint and action
 parameter to remove the URL from the blocklist and allowlist. Hence, removing the URL from the
@@ -143,33 +152,33 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 #### Action Output
 DATA PATH | TYPE | CONTAINS
 --------- | ---- | --------
-action\_result\.parameter\.url | string |  `url` 
+action\_result\.status | string | 
 action\_result\.parameter\.comment | string | 
 action\_result\.parameter\.enable\_log\_click | boolean | 
 action\_result\.parameter\.match\_type | string | 
-action\_result\.data\.\*\.queryString | string | 
-action\_result\.data\.\*\.data\.\*\.duration | numeric | 
-action\_result\.data\.\*\.data\.\*\.username | string | 
-action\_result\.data\.\*\.data\.\*\.accessKey | string | 
-action\_result\.data\.\*\.data\.\*\.secretKey | string | 
-action\_result\.data\.\*\.data\.\*\.bindingType | string | 
-action\_result\.data\.\*\.data\.\*\.lastUserToken | string | 
-action\_result\.data\.\*\.data\.\*\.extendOnValidate | boolean | 
-action\_result\.data\.\*\.meta\.status | numeric | 
-action\_result\.data\.\*\.comment | string | 
-action\_result\.data\.\*\.domain | string |  `domain` 
-action\_result\.data\.\*\.disableRewrite | boolean | 
-action\_result\.data\.\*\.id | string |  `mimecast url id` 
-action\_result\.data\.\*\.disableUserAwareness | boolean | 
-action\_result\.data\.\*\.disableLogClick | boolean | 
+action\_result\.parameter\.url | string |  `url` 
 action\_result\.data\.\*\.action | string | 
-action\_result\.data\.\*\.path | string | 
+action\_result\.data\.\*\.comment | string | 
+action\_result\.data\.\*\.data\.\*\.accessKey | string | 
+action\_result\.data\.\*\.data\.\*\.bindingType | string | 
+action\_result\.data\.\*\.data\.\*\.duration | numeric | 
+action\_result\.data\.\*\.data\.\*\.extendOnValidate | boolean | 
+action\_result\.data\.\*\.data\.\*\.lastUserToken | string | 
+action\_result\.data\.\*\.data\.\*\.secretKey | string | 
+action\_result\.data\.\*\.data\.\*\.username | string | 
+action\_result\.data\.\*\.disableLogClick | boolean | 
+action\_result\.data\.\*\.disableRewrite | boolean | 
+action\_result\.data\.\*\.disableUserAwareness | boolean | 
+action\_result\.data\.\*\.domain | string |  `domain` 
+action\_result\.data\.\*\.id | string |  `mimecast url id` 
 action\_result\.data\.\*\.matchType | string | 
-action\_result\.data\.\*\.scheme | string |  `url` 
+action\_result\.data\.\*\.meta\.status | numeric | 
+action\_result\.data\.\*\.path | string | 
 action\_result\.data\.\*\.port | numeric | 
-action\_result\.status | string | 
-action\_result\.message | string | 
+action\_result\.data\.\*\.queryString | string | 
+action\_result\.data\.\*\.scheme | string |  `url` 
 action\_result\.summary\.status | string | 
+action\_result\.message | string | 
 summary\.total\_objects | numeric | 
 summary\.total\_objects\_successful | numeric |   
 
@@ -188,16 +197,16 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 #### Action Output
 DATA PATH | TYPE | CONTAINS
 --------- | ---- | --------
-action\_result\.parameter\.member | string |  `email`  `domain` 
+action\_result\.status | string | 
 action\_result\.parameter\.id | string |  `mimecast group id` 
+action\_result\.parameter\.member | string |  `email`  `domain` 
 action\_result\.data\.\*\.domain | string |  `domain` 
+action\_result\.data\.\*\.emailAddress | string |  `email` 
 action\_result\.data\.\*\.folderId | string |  `mimecast group id` 
 action\_result\.data\.\*\.id | string | 
-action\_result\.data\.\*\.emailAddress | string |  `email` 
 action\_result\.data\.\*\.internal | boolean | 
-action\_result\.status | string | 
-action\_result\.message | string | 
 action\_result\.summary\.status | string | 
+action\_result\.message | string | 
 summary\.total\_objects | numeric | 
 summary\.total\_objects\_successful | numeric |   
 
@@ -216,16 +225,16 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 #### Action Output
 DATA PATH | TYPE | CONTAINS
 --------- | ---- | --------
-action\_result\.parameter\.member | string |  `email`  `domain` 
+action\_result\.status | string | 
 action\_result\.parameter\.id | string |  `mimecast group id` 
+action\_result\.parameter\.member | string |  `email`  `domain` 
 action\_result\.data\.\*\.domain | string |  `domain` 
+action\_result\.data\.\*\.emailAddress | string |  `email` 
 action\_result\.data\.\*\.folderId | string |  `mimecast group id` 
 action\_result\.data\.\*\.id | string | 
-action\_result\.data\.\*\.emailAddress | string |  `email` 
 action\_result\.data\.\*\.internal | boolean | 
-action\_result\.status | string | 
-action\_result\.message | string | 
 action\_result\.summary\.status | string | 
+action\_result\.message | string | 
 summary\.total\_objects | numeric | 
 summary\.total\_objects\_successful | numeric |   
 
@@ -244,23 +253,23 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 #### Action Output
 DATA PATH | TYPE | CONTAINS
 --------- | ---- | --------
+action\_result\.status | string | 
 action\_result\.parameter\.sender | string |  `email` 
 action\_result\.parameter\.to | string |  `email` 
-action\_result\.data\.\*\.data\.\*\.duration | numeric | 
-action\_result\.data\.\*\.data\.\*\.username | string | 
 action\_result\.data\.\*\.data\.\*\.accessKey | string | 
-action\_result\.data\.\*\.data\.\*\.secretKey | string | 
 action\_result\.data\.\*\.data\.\*\.bindingType | string | 
-action\_result\.data\.\*\.data\.\*\.lastUserToken | string | 
+action\_result\.data\.\*\.data\.\*\.duration | numeric | 
 action\_result\.data\.\*\.data\.\*\.extendOnValidate | boolean | 
+action\_result\.data\.\*\.data\.\*\.lastUserToken | string | 
+action\_result\.data\.\*\.data\.\*\.secretKey | string | 
+action\_result\.data\.\*\.data\.\*\.username | string | 
+action\_result\.data\.\*\.id | string | 
 action\_result\.data\.\*\.meta\.status | numeric | 
+action\_result\.data\.\*\.sender | string |  `email` 
 action\_result\.data\.\*\.to | string |  `email` 
 action\_result\.data\.\*\.type | string | 
-action\_result\.data\.\*\.id | string | 
-action\_result\.data\.\*\.sender | string |  `email` 
-action\_result\.status | string | 
-action\_result\.message | string | 
 action\_result\.summary\.status | string | 
+action\_result\.message | string | 
 summary\.total\_objects | numeric | 
 summary\.total\_objects\_successful | numeric |   
 
@@ -279,15 +288,15 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 #### Action Output
 DATA PATH | TYPE | CONTAINS
 --------- | ---- | --------
+action\_result\.status | string | 
 action\_result\.parameter\.sender | string |  `email` 
 action\_result\.parameter\.to | string |  `email` 
-action\_result\.data\.\*\.to | string |  `email` 
-action\_result\.data\.\*\.type | string | 
 action\_result\.data\.\*\.id | string | 
 action\_result\.data\.\*\.sender | string |  `email` 
-action\_result\.status | string | 
-action\_result\.message | string | 
+action\_result\.data\.\*\.to | string |  `email` 
+action\_result\.data\.\*\.type | string | 
 action\_result\.summary\.status | string | 
+action\_result\.message | string | 
 summary\.total\_objects | numeric | 
 summary\.total\_objects\_successful | numeric |   
 
@@ -310,27 +319,27 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 #### Action Output
 DATA PATH | TYPE | CONTAINS
 --------- | ---- | --------
+action\_result\.status | string | 
 action\_result\.parameter\.comment | string | 
 action\_result\.parameter\.enable\_log\_click | boolean | 
-action\_result\.parameter\.match\_type | string | 
-action\_result\.parameter\.url | string |  `url` 
 action\_result\.parameter\.enable\_rewrite | boolean | 
 action\_result\.parameter\.enable\_user\_awareness | boolean | 
-action\_result\.data\.\*\.queryString | string | 
-action\_result\.data\.\*\.comment | string | 
-action\_result\.data\.\*\.domain | string |  `domain` 
-action\_result\.data\.\*\.disableRewrite | boolean | 
-action\_result\.data\.\*\.id | string |  `mimecast url id` 
-action\_result\.data\.\*\.disableUserAwareness | boolean | 
-action\_result\.data\.\*\.disableLogClick | boolean | 
+action\_result\.parameter\.match\_type | string | 
+action\_result\.parameter\.url | string |  `url` 
 action\_result\.data\.\*\.action | string | 
-action\_result\.data\.\*\.path | string | 
+action\_result\.data\.\*\.comment | string | 
+action\_result\.data\.\*\.disableLogClick | boolean | 
+action\_result\.data\.\*\.disableRewrite | boolean | 
+action\_result\.data\.\*\.disableUserAwareness | boolean | 
+action\_result\.data\.\*\.domain | string |  `domain` 
+action\_result\.data\.\*\.id | string |  `mimecast url id` 
 action\_result\.data\.\*\.matchType | string | 
-action\_result\.data\.\*\.scheme | string |  `url` 
+action\_result\.data\.\*\.path | string | 
 action\_result\.data\.\*\.port | numeric | 
-action\_result\.status | string | 
-action\_result\.message | string | 
+action\_result\.data\.\*\.queryString | string | 
+action\_result\.data\.\*\.scheme | string |  `url` 
 action\_result\.summary\.status | string | 
+action\_result\.message | string | 
 summary\.total\_objects | numeric | 
 summary\.total\_objects\_successful | numeric |   
 
@@ -348,19 +357,19 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 #### Action Output
 DATA PATH | TYPE | CONTAINS
 --------- | ---- | --------
+action\_result\.status | string | 
 action\_result\.parameter\.id | string |  `mimecast url id` 
 action\_result\.data | string | 
-action\_result\.data\.\*\.data\.\*\.duration | numeric | 
-action\_result\.data\.\*\.data\.\*\.username | string | 
 action\_result\.data\.\*\.data\.\*\.accessKey | string | 
-action\_result\.data\.\*\.data\.\*\.secretKey | string | 
 action\_result\.data\.\*\.data\.\*\.bindingType | string | 
-action\_result\.data\.\*\.data\.\*\.lastUserToken | string | 
+action\_result\.data\.\*\.data\.\*\.duration | numeric | 
 action\_result\.data\.\*\.data\.\*\.extendOnValidate | boolean | 
+action\_result\.data\.\*\.data\.\*\.lastUserToken | string | 
+action\_result\.data\.\*\.data\.\*\.secretKey | string | 
+action\_result\.data\.\*\.data\.\*\.username | string | 
 action\_result\.data\.\*\.meta\.status | numeric | 
-action\_result\.status | string | 
-action\_result\.message | string | 
 action\_result\.summary\.status | string | 
+action\_result\.message | string | 
 summary\.total\_objects | numeric | 
 summary\.total\_objects\_successful | numeric |   
 
@@ -378,11 +387,11 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 #### Action Output
 DATA PATH | TYPE | CONTAINS
 --------- | ---- | --------
+action\_result\.status | string | 
 action\_result\.parameter\.id | string |  `mimecast url id` 
 action\_result\.data | string | 
-action\_result\.status | string | 
-action\_result\.message | string | 
 action\_result\.summary\.status | string | 
+action\_result\.message | string | 
 summary\.total\_objects | numeric | 
 summary\.total\_objects\_successful | numeric |   
 
@@ -400,30 +409,30 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 #### Action Output
 DATA PATH | TYPE | CONTAINS
 --------- | ---- | --------
-action\_result\.parameter\.max\_results | string | 
-action\_result\.data\.\*\.data\.\*\.duration | numeric | 
-action\_result\.data\.\*\.data\.\*\.username | string | 
-action\_result\.data\.\*\.data\.\*\.accessKey | string | 
-action\_result\.data\.\*\.data\.\*\.secretKey | string | 
-action\_result\.data\.\*\.data\.\*\.bindingType | string | 
-action\_result\.data\.\*\.data\.\*\.lastUserToken | string | 
-action\_result\.data\.\*\.data\.\*\.extendOnValidate | boolean | 
-action\_result\.data\.\*\.meta\.status | numeric | 
-action\_result\.data\.\*\.comment | string | 
-action\_result\.data\.\*\.domain | string |  `domain` 
-action\_result\.data\.\*\.disableRewrite | boolean | 
-action\_result\.data\.\*\.id | string |  `mimecast url id` 
-action\_result\.data\.\*\.disableUserAwareness | boolean | 
-action\_result\.data\.\*\.disableLogClick | boolean | 
-action\_result\.data\.\*\.action | string | 
-action\_result\.data\.\*\.matchType | string | 
-action\_result\.data\.\*\.scheme | string |  `url` 
-action\_result\.data\.\*\.port | numeric | 
-action\_result\.data\.\*\.path | string | 
-action\_result\.data\.\*\.queryString | string | 
 action\_result\.status | string | 
-action\_result\.message | string | 
+action\_result\.parameter\.max\_results | numeric | 
+action\_result\.data\.\*\.action | string | 
+action\_result\.data\.\*\.comment | string | 
+action\_result\.data\.\*\.data\.\*\.accessKey | string | 
+action\_result\.data\.\*\.data\.\*\.bindingType | string | 
+action\_result\.data\.\*\.data\.\*\.duration | numeric | 
+action\_result\.data\.\*\.data\.\*\.extendOnValidate | boolean | 
+action\_result\.data\.\*\.data\.\*\.lastUserToken | string | 
+action\_result\.data\.\*\.data\.\*\.secretKey | string | 
+action\_result\.data\.\*\.data\.\*\.username | string | 
+action\_result\.data\.\*\.disableLogClick | boolean | 
+action\_result\.data\.\*\.disableRewrite | boolean | 
+action\_result\.data\.\*\.disableUserAwareness | boolean | 
+action\_result\.data\.\*\.domain | string |  `domain` 
+action\_result\.data\.\*\.id | string |  `mimecast url id` 
+action\_result\.data\.\*\.matchType | string | 
+action\_result\.data\.\*\.meta\.status | numeric | 
+action\_result\.data\.\*\.path | string | 
+action\_result\.data\.\*\.port | numeric | 
+action\_result\.data\.\*\.queryString | string | 
+action\_result\.data\.\*\.scheme | string |  `url` 
 action\_result\.summary\.num\_urls | numeric | 
+action\_result\.message | string | 
 summary\.total\_objects | numeric | 
 summary\.total\_objects\_successful | numeric |   
 
@@ -445,25 +454,25 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 #### Action Output
 DATA PATH | TYPE | CONTAINS
 --------- | ---- | --------
+action\_result\.status | string | 
 action\_result\.parameter\.page\_size | numeric | 
 action\_result\.parameter\.query | string | 
 action\_result\.parameter\.source | string | 
-action\_result\.data\.\*\.meta\.status | numeric | 
-action\_result\.data\.\*\.meta\.pagination\.totalCount | numeric | 
-action\_result\.data\.\*\.meta\.pagination\.pageSize | numeric | 
-action\_result\.data\.\*\.meta\.pagination\.next | string | 
 action\_result\.data\.\*\.groups\.\*\.folders\.\*\.description | string | 
-action\_result\.data\.\*\.groups\.\*\.folders\.\*\.source | string | 
 action\_result\.data\.\*\.groups\.\*\.folders\.\*\.folderCount | numeric | 
-action\_result\.data\.\*\.groups\.\*\.folders\.\*\.parentId | string | 
 action\_result\.data\.\*\.groups\.\*\.folders\.\*\.id | string |  `mimecast group id` 
+action\_result\.data\.\*\.groups\.\*\.folders\.\*\.parentId | string | 
+action\_result\.data\.\*\.groups\.\*\.folders\.\*\.source | string | 
 action\_result\.data\.\*\.groups\.\*\.folders\.\*\.userCount | numeric | 
-action\_result\.data\.\*\.groups\.\*\.source | string | 
-action\_result\.data\.\*\.meta\.pagination\.previous | string | 
 action\_result\.data\.\*\.groups\.\*\.query | string | 
-action\_result\.status | string | 
-action\_result\.message | string | 
+action\_result\.data\.\*\.groups\.\*\.source | string | 
+action\_result\.data\.\*\.meta\.pagination\.next | string | 
+action\_result\.data\.\*\.meta\.pagination\.pageSize | numeric | 
+action\_result\.data\.\*\.meta\.pagination\.previous | string | 
+action\_result\.data\.\*\.meta\.pagination\.totalCount | numeric | 
+action\_result\.data\.\*\.meta\.status | numeric | 
 action\_result\.summary\.num\_groups | numeric | 
+action\_result\.message | string | 
 summary\.total\_objects | numeric | 
 summary\.total\_objects\_successful | numeric |   
 
@@ -484,28 +493,28 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 #### Action Output
 DATA PATH | TYPE | CONTAINS
 --------- | ---- | --------
+action\_result\.status | string | 
 action\_result\.parameter\.id | string |  `mimecast group id` 
 action\_result\.parameter\.page\_size | numeric | 
-action\_result\.data\.\*\.data\.\*\.duration | numeric | 
-action\_result\.data\.\*\.data\.\*\.username | string | 
 action\_result\.data\.\*\.data\.\*\.accessKey | string | 
-action\_result\.data\.\*\.data\.\*\.secretKey | string | 
 action\_result\.data\.\*\.data\.\*\.bindingType | string | 
-action\_result\.data\.\*\.data\.\*\.lastUserToken | string | 
+action\_result\.data\.\*\.data\.\*\.duration | numeric | 
 action\_result\.data\.\*\.data\.\*\.extendOnValidate | boolean | 
-action\_result\.data\.\*\.meta\.status | numeric | 
+action\_result\.data\.\*\.data\.\*\.lastUserToken | string | 
+action\_result\.data\.\*\.data\.\*\.secretKey | string | 
+action\_result\.data\.\*\.data\.\*\.username | string | 
+action\_result\.data\.\*\.members\.\*\.groupMembers\.\*\.domain | string |  `domain` 
+action\_result\.data\.\*\.members\.\*\.groupMembers\.\*\.emailAddress | string |  `email` 
+action\_result\.data\.\*\.members\.\*\.groupMembers\.\*\.internal | boolean | 
+action\_result\.data\.\*\.members\.\*\.groupMembers\.\*\.name | string | 
+action\_result\.data\.\*\.members\.\*\.groupMembers\.\*\.type | string | 
 action\_result\.data\.\*\.meta\.pagination\.next | string | 
-action\_result\.data\.\*\.meta\.pagination\.totalCount | numeric | 
 action\_result\.data\.\*\.meta\.pagination\.pageSize | numeric | 
 action\_result\.data\.\*\.meta\.pagination\.previous | string | 
-action\_result\.data\.\*\.members\.\*\.groupMembers\.\*\.type | string | 
-action\_result\.data\.\*\.members\.\*\.groupMembers\.\*\.domain | string |  `domain` 
-action\_result\.data\.\*\.members\.\*\.groupMembers\.\*\.internal | boolean | 
-action\_result\.data\.\*\.members\.\*\.groupMembers\.\*\.emailAddress | string | 
-action\_result\.data\.\*\.members\.\*\.groupMembers\.\*\.name | string | 
-action\_result\.status | string | 
-action\_result\.message | string | 
+action\_result\.data\.\*\.meta\.pagination\.totalCount | numeric | 
+action\_result\.data\.\*\.meta\.status | numeric | 
 action\_result\.summary\.num\_group\_members | numeric | 
+action\_result\.message | string | 
 summary\.total\_objects | numeric | 
 summary\.total\_objects\_successful | numeric |   
 
@@ -525,25 +534,25 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 #### Action Output
 DATA PATH | TYPE | CONTAINS
 --------- | ---- | --------
+action\_result\.status | string | 
+action\_result\.parameter\.id | string |  `mimecast group id` 
 action\_result\.parameter\.member | string |  `email`  `domain` 
 action\_result\.parameter\.type | string | 
-action\_result\.parameter\.id | string |  `mimecast group id` 
+action\_result\.data\.\*\.data\.\*\.accessKey | string | 
+action\_result\.data\.\*\.data\.\*\.bindingType | string | 
+action\_result\.data\.\*\.data\.\*\.duration | numeric | 
+action\_result\.data\.\*\.data\.\*\.extendOnValidate | boolean | 
+action\_result\.data\.\*\.data\.\*\.lastUserToken | string | 
+action\_result\.data\.\*\.data\.\*\.secretKey | string | 
+action\_result\.data\.\*\.data\.\*\.username | string | 
+action\_result\.data\.\*\.domain | string |  `domain` 
+action\_result\.data\.\*\.emailAddress | string |  `email` 
+action\_result\.data\.\*\.internal | boolean | 
+action\_result\.data\.\*\.meta\.status | numeric | 
 action\_result\.data\.\*\.name | string | 
 action\_result\.data\.\*\.type | string | 
-action\_result\.data\.\*\.domain | string | 
-action\_result\.data\.\*\.internal | boolean | 
-action\_result\.data\.\*\.emailAddress | string | 
-action\_result\.data\.\*\.data\.\*\.duration | numeric | 
-action\_result\.data\.\*\.data\.\*\.username | string | 
-action\_result\.data\.\*\.data\.\*\.accessKey | string | 
-action\_result\.data\.\*\.data\.\*\.secretKey | string | 
-action\_result\.data\.\*\.data\.\*\.bindingType | string | 
-action\_result\.data\.\*\.data\.\*\.lastUserToken | string | 
-action\_result\.data\.\*\.data\.\*\.extendOnValidate | boolean | 
-action\_result\.data\.\*\.meta\.status | numeric | 
-action\_result\.status | string | 
-action\_result\.message | string | 
 action\_result\.summary\.status | string | 
+action\_result\.message | string | 
 summary\.total\_objects | numeric | 
 summary\.total\_objects\_successful | numeric |   
 
@@ -570,42 +579,42 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 #### Action Output
 DATA PATH | TYPE | CONTAINS
 --------- | ---- | --------
-action\_result\.parameter\.to | string |  `email`  `domain` 
+action\_result\.status | string | 
+action\_result\.parameter\.end | string | 
 action\_result\.parameter\.from | string |  `email`  `domain` 
 action\_result\.parameter\.message\_id | string | 
 action\_result\.parameter\.search\_reason | string | 
-action\_result\.parameter\.end | string | 
+action\_result\.parameter\.sender\_ip | string |  `ip` 
 action\_result\.parameter\.start | string | 
 action\_result\.parameter\.subject | string | 
-action\_result\.parameter\.sender\_ip | string |  `ip` 
-action\_result\.data\.\*\.spamScore | numeric | 
-action\_result\.data\.\*\.detectionLevel | string | 
-action\_result\.data\.\*\.data\.\*\.duration | numeric | 
-action\_result\.data\.\*\.data\.\*\.username | string | 
-action\_result\.data\.\*\.data\.\*\.accessKey | string | 
-action\_result\.data\.\*\.data\.\*\.secretKey | string | 
-action\_result\.data\.\*\.data\.\*\.bindingType | string | 
-action\_result\.data\.\*\.data\.\*\.lastUserToken | string | 
-action\_result\.data\.\*\.data\.\*\.extendOnValidate | boolean | 
-action\_result\.data\.\*\.meta\.status | numeric | 
-action\_result\.data\.\*\.info | string | 
-action\_result\.data\.\*\.status | string | 
+action\_result\.parameter\.to | string |  `email`  `domain` 
 action\_result\.data\.\*\.attachments | boolean | 
+action\_result\.data\.\*\.data\.\*\.accessKey | string | 
+action\_result\.data\.\*\.data\.\*\.bindingType | string | 
+action\_result\.data\.\*\.data\.\*\.duration | numeric | 
+action\_result\.data\.\*\.data\.\*\.extendOnValidate | boolean | 
+action\_result\.data\.\*\.data\.\*\.lastUserToken | string | 
+action\_result\.data\.\*\.data\.\*\.secretKey | string | 
+action\_result\.data\.\*\.data\.\*\.username | string | 
+action\_result\.data\.\*\.detectionLevel | string | 
+action\_result\.data\.\*\.fromEnv\.displayableName | string |  `email` 
+action\_result\.data\.\*\.fromEnv\.emailAddress | string |  `email` 
+action\_result\.data\.\*\.fromHdr\.displayableName | string |  `email` 
+action\_result\.data\.\*\.fromHdr\.emailAddress | string |  `email` 
+action\_result\.data\.\*\.id | string |  `mimecast email id` 
+action\_result\.data\.\*\.info | string | 
+action\_result\.data\.\*\.meta\.status | numeric | 
 action\_result\.data\.\*\.received | string | 
 action\_result\.data\.\*\.route | string | 
-action\_result\.data\.\*\.fromHdr\.emailAddress | string |  `email` 
-action\_result\.data\.\*\.to\.\*\.emailAddress | string |  `email` 
-action\_result\.data\.\*\.to\.\*\.displayableName | string | 
-action\_result\.data\.\*\.fromEnv\.emailAddress | string |  `email` 
 action\_result\.data\.\*\.senderIP | string |  `ip` 
-action\_result\.data\.\*\.id | string |  `mimecast email id` 
 action\_result\.data\.\*\.sent | string | 
+action\_result\.data\.\*\.spamScore | numeric | 
+action\_result\.data\.\*\.status | string | 
 action\_result\.data\.\*\.subject | string | 
-action\_result\.data\.\*\.fromHdr\.displayableName | string |  `email` 
-action\_result\.data\.\*\.fromEnv\.displayableName | string |  `email` 
-action\_result\.status | string | 
-action\_result\.message | string | 
+action\_result\.data\.\*\.to\.\*\.displayableName | string | 
+action\_result\.data\.\*\.to\.\*\.emailAddress | string |  `email` 
 action\_result\.summary\.num\_emails | numeric | 
+action\_result\.message | string | 
 summary\.total\_objects | numeric | 
 summary\.total\_objects\_successful | numeric |   
 
@@ -623,216 +632,216 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 #### Action Output
 DATA PATH | TYPE | CONTAINS
 --------- | ---- | --------
+action\_result\.status | string | 
 action\_result\.parameter\.id | string |  `mimecast email id` 
-action\_result\.data\.\*\.spamInfo\.spamScore | numeric | 
-action\_result\.data\.\*\.spamInfo\.detectionLevel | string | 
-action\_result\.data\.\*\.spamInfo\.spamProcessingDetail\.rbl\.info | string | 
-action\_result\.data\.\*\.spamInfo\.spamProcessingDetail\.rbl\.allow | boolean | 
-action\_result\.data\.\*\.spamInfo\.spamProcessingDetail\.spf\.info | string | 
-action\_result\.data\.\*\.spamInfo\.spamProcessingDetail\.spf\.allow | boolean | 
-action\_result\.data\.\*\.spamInfo\.spamProcessingDetail\.managedSender\.info | string | 
-action\_result\.data\.\*\.spamInfo\.spamProcessingDetail\.managedSender\.allow | boolean | 
-action\_result\.data\.\*\.spamInfo\.spamProcessingDetail\.permittedSender\.info | string | 
-action\_result\.data\.\*\.spamInfo\.spamProcessingDetail\.permittedSender\.allow | boolean | 
-action\_result\.data\.\*\.queueInfo\.type | numeric | 
-action\_result\.data\.\*\.queueInfo\.deferred | boolean | 
-action\_result\.data\.\*\.queueInfo\.remoteIp | string | 
-action\_result\.data\.\*\.queueInfo\.mtaServerName | string | 
-action\_result\.data\.\*\.queueInfo\.processThreadId | string | 
-action\_result\.data\.\*\.queueInfo\.remoteServerName | string | 
-action\_result\.data\.\*\.queueInfo\.toAddressPostCheck | string | 
-action\_result\.data\.\*\.queueInfo\.remoteServerGreeting | string | 
-action\_result\.data\.\*\.spamInfo\.spamProcessingDetail\.dkim\.info | string | 
-action\_result\.data\.\*\.spamInfo\.spamProcessingDetail\.dkim\.allow | boolean | 
-action\_result\.data\.\*\.spamInfo\.spamProcessingDetail\.dmarc\.info | string | 
-action\_result\.data\.\*\.spamInfo\.spamProcessingDetail\.dmarc\.allow | boolean | 
-action\_result\.data\.\*\.spamInfo\.spamProcessingDetail\.verdict\.risk | string | 
-action\_result\.data\.\*\.spamInfo\.spamProcessingDetail\.verdict\.decision | string | 
-action\_result\.data\.\*\.spamInfo\.spamProcessingDetail\.verdict\.categories\.\*\.name | string | 
-action\_result\.data\.\*\.spamInfo\.spamProcessingDetail\.verdict\.categories\.\*\.risk | string | 
-action\_result\.data\.\*\.spamInfo\.spamProcessingDetail\.verdict\.categories\.\*\.subcategories\.\*\.name | string | 
-action\_result\.data\.\*\.spamInfo\.spamProcessingDetail\.verdict\.categories\.\*\.subcategories\.\*\.risk | string | 
-action\_result\.data\.\*\.spamInfo\.spamProcessingDetail\.verdict\.categories\.\*\.subcategories\.\*\.augmentations\.\*\.name | string | 
-action\_result\.data\.\*\.spamInfo\.spamProcessingDetail\.verdict\.categories\.\*\.subcategories\.\*\.augmentations\.\*\.risk | string | 
-action\_result\.data\.\*\.spamInfo\.spamProcessingDetail\.verdict\.description | string | 
-action\_result\.data\.\*\.spamInfo\.spamProcessingDetail\.greyEmail | boolean | 
-action\_result\.data\.\*\.spamInfo\.spamProcessingDetail\.symbolGroups\.\*\.name | string | 
-action\_result\.data\.\*\.spamInfo\.spamProcessingDetail\.symbolGroups\.\*\.description | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.to | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.txEvent | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.remoteIp | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.actualSize | numeric | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.receiptAck | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.returnPath | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.smtpEndTime | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.deliveryType | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.remoteServer | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.smtpStartTime | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.processEndTime | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.smtpActualSize | numeric | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.processStartTime | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.processingServer | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.transmissionSize | numeric | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.queueDetailStatus | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.compressedStoreSize | numeric | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.remoteServerGreeting | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.remoteServerReceiptAck | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.transmissionComponents\.\*\.hash | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.transmissionComponents\.\*\.txSize | numeric | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.transmissionComponents\.\*\.fileName | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.transmissionComponents\.\*\.fileType | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.smtpCompressedStoreSize | numeric | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.deliveryMetaInfo\.components\.\*\.extension | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.deliveryMetaInfo\.components\.\*\.hash | string |  `sha256` 
+action\_result\.data\.\*\.deliveredMessage\.\*\.deliveryMetaInfo\.components\.\*\.mimeType | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.deliveryMetaInfo\.components\.\*\.name | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.deliveryMetaInfo\.components\.\*\.size | numeric | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.deliveryMetaInfo\.components\.\*\.type | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.deliveryMetaInfo\.deliveryEvent | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.deliveryMetaInfo\.emailAddress | string |  `email` 
+action\_result\.data\.\*\.deliveredMessage\.\*\.deliveryMetaInfo\.encryptionInfo | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.deliveryMetaInfo\.messageExpiresIn | numeric | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.deliveryMetaInfo\.processingServer | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.deliveryMetaInfo\.receiptAcknowledgement | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.deliveryMetaInfo\.remoteHost | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.deliveryMetaInfo\.remoteIp | string |  `ip` 
+action\_result\.data\.\*\.deliveredMessage\.\*\.deliveryMetaInfo\.remoteServerGreeting | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.deliveryMetaInfo\.transmissionEnd | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.deliveryMetaInfo\.transmissionSize | numeric | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.deliveryMetaInfo\.transmissionStart | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.messageInfo\.fromEnvelope | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.messageInfo\.fromEnvelope | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.messageInfo\.fromEnvelope | string |  `email` 
+action\_result\.data\.\*\.deliveredMessage\.\*\.messageInfo\.fromHeader | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.messageInfo\.fromHeader | string |  `email` 
+action\_result\.data\.\*\.deliveredMessage\.\*\.messageInfo\.fromHeader | string |  `email` 
+action\_result\.data\.\*\.deliveredMessage\.\*\.messageInfo\.processed | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.messageInfo\.processed | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.messageInfo\.processed | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.messageInfo\.route | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.messageInfo\.route | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.messageInfo\.route | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.messageInfo\.sent | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.messageInfo\.sent | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.messageInfo\.sent | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.messageInfo\.subject | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.messageInfo\.subject | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.messageInfo\.subject | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.messageInfo\.to | string |  `email` 
+action\_result\.data\.\*\.deliveredMessage\.\*\.messageInfo\.to | string |  `email` 
+action\_result\.data\.\*\.deliveredMessage\.\*\.messageInfo\.transmissionInfo | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.messageInfo\.transmissionInfo | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.messageInfo\.transmissionInfo | string | 
 action\_result\.data\.\*\.deliveredMessage\.\*\.policyInfo\.\*\.inherited | boolean | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.policyInfo\.\*\.inherited | boolean | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.policyInfo\.\*\.inherited | boolean | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.policyInfo\.\*\.inheritedCustomerCode | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.policyInfo\.\*\.inheritedCustomerCode | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.policyInfo\.\*\.policyName | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.policyInfo\.\*\.policyName | string | 
 action\_result\.data\.\*\.deliveredMessage\.\*\.policyInfo\.\*\.policyName | string | 
 action\_result\.data\.\*\.deliveredMessage\.\*\.policyInfo\.\*\.policyType | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.policyInfo\.\*\.inheritedCustomerCode | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.messageInfo\.sent | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.messageInfo\.route | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.messageInfo\.subject | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.messageInfo\.processed | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.messageInfo\.fromHeader | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.messageInfo\.fromEnvelope | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.messageInfo\.transmissionInfo | string | 
-action\_result\.data\.\*\.status | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.policyInfo\.\*\.policyType | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.policyInfo\.\*\.policyType | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.actualSize | numeric | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.actualSize | numeric | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.compressedStoreSize | numeric | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.compressedStoreSize | numeric | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.deliveryType | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.deliveryType | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.processEndTime | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.processEndTime | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.processStartTime | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.processStartTime | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.processingServer | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.processingServer | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.queueDetailStatus | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.queueDetailStatus | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.receiptAck | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.receiptAck | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.remoteIp | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.remoteIp | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.remoteServer | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.remoteServer | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.remoteServerGreeting | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.remoteServerGreeting | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.remoteServerReceiptAck | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.remoteServerReceiptAck | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.returnPath | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.returnPath | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.smtpActualSize | numeric | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.smtpActualSize | numeric | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.smtpCompressedStoreSize | numeric | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.smtpCompressedStoreSize | numeric | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.smtpEndTime | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.smtpEndTime | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.smtpStartTime | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.smtpStartTime | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.to | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.to | string |  `email` 
+action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.transmissionComponents\.\*\.fileName | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.transmissionComponents\.\*\.fileName | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.transmissionComponents\.\*\.fileType | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.transmissionComponents\.\*\.fileType | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.transmissionComponents\.\*\.hash | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.transmissionComponents\.\*\.hash | string |  `sha256` 
+action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.transmissionComponents\.\*\.txSize | numeric | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.transmissionComponents\.\*\.txSize | numeric | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.transmissionSize | numeric | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.transmissionSize | numeric | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.txEvent | string | 
+action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.txEvent | string | 
+action\_result\.data\.\*\.id | string | 
+action\_result\.data\.\*\.queueInfo\.attachments | boolean | 
+action\_result\.data\.\*\.queueInfo\.createTime | string | 
+action\_result\.data\.\*\.queueInfo\.deferred | boolean | 
+action\_result\.data\.\*\.queueInfo\.fromEnvelope | string | 
+action\_result\.data\.\*\.queueInfo\.fromHeader | string |  `email` 
+action\_result\.data\.\*\.queueInfo\.heldGroup | string | 
+action\_result\.data\.\*\.queueInfo\.id | string | 
 action\_result\.data\.\*\.queueInfo\.info | string | 
 action\_result\.data\.\*\.queueInfo\.manageRecipient | boolean | 
-action\_result\.data\.\*\.queueInfo\.attachments | boolean | 
-action\_result\.data\.\*\.queueInfo\.fromEnvelope | string | 
+action\_result\.data\.\*\.queueInfo\.mtaServerName | string | 
+action\_result\.data\.\*\.queueInfo\.processThreadId | string | 
+action\_result\.data\.\*\.queueInfo\.reason | string | 
+action\_result\.data\.\*\.queueInfo\.remoteIp | string | 
+action\_result\.data\.\*\.queueInfo\.remoteServerGreeting | string | 
+action\_result\.data\.\*\.queueInfo\.remoteServerName | string | 
 action\_result\.data\.\*\.queueInfo\.route | string | 
 action\_result\.data\.\*\.queueInfo\.size | numeric | 
-action\_result\.data\.\*\.queueInfo\.fromHeader | string |  `email` 
-action\_result\.data\.\*\.queueInfo\.to | string | 
-action\_result\.data\.\*\.queueInfo\.reason | string | 
-action\_result\.data\.\*\.queueInfo\.id | string | 
-action\_result\.data\.\*\.queueInfo\.heldGroup | string | 
-action\_result\.data\.\*\.queueInfo\.createTime | string | 
 action\_result\.data\.\*\.queueInfo\.subject | string | 
-action\_result\.data\.\*\.recipientInfo\.messageInfo\.route | string | 
-action\_result\.data\.\*\.recipientInfo\.messageInfo\.fromEnvelope | string |  `email` 
-action\_result\.data\.\*\.recipientInfo\.messageInfo\.transmissionInfo | string | 
-action\_result\.data\.\*\.recipientInfo\.messageInfo\.to | string |  `email` 
-action\_result\.data\.\*\.recipientInfo\.messageInfo\.processed | string | 
+action\_result\.data\.\*\.queueInfo\.to | string | 
+action\_result\.data\.\*\.queueInfo\.toAddressPostCheck | string | 
+action\_result\.data\.\*\.queueInfo\.type | numeric | 
 action\_result\.data\.\*\.recipientInfo\.messageInfo\.contentExpiration | string | 
-action\_result\.data\.\*\.recipientInfo\.messageInfo\.metadataExpiration | string | 
+action\_result\.data\.\*\.recipientInfo\.messageInfo\.fromEnvelope | string |  `email` 
 action\_result\.data\.\*\.recipientInfo\.messageInfo\.fromHeader | string |  `email` 
+action\_result\.data\.\*\.recipientInfo\.messageInfo\.metadataExpiration | string | 
+action\_result\.data\.\*\.recipientInfo\.messageInfo\.processed | string | 
+action\_result\.data\.\*\.recipientInfo\.messageInfo\.route | string | 
 action\_result\.data\.\*\.recipientInfo\.messageInfo\.sent | string | 
 action\_result\.data\.\*\.recipientInfo\.messageInfo\.subject | string | 
+action\_result\.data\.\*\.recipientInfo\.messageInfo\.to | string |  `email` 
+action\_result\.data\.\*\.recipientInfo\.messageInfo\.transmissionInfo | string | 
+action\_result\.data\.\*\.recipientInfo\.recipientMetaInfo\.binaryEmailSize | numeric | 
+action\_result\.data\.\*\.recipientInfo\.recipientMetaInfo\.components\.\*\.extension | string | 
+action\_result\.data\.\*\.recipientInfo\.recipientMetaInfo\.components\.\*\.hash | string |  `sha256` 
+action\_result\.data\.\*\.recipientInfo\.recipientMetaInfo\.components\.\*\.mimeType | string | 
+action\_result\.data\.\*\.recipientInfo\.recipientMetaInfo\.components\.\*\.name | string | 
+action\_result\.data\.\*\.recipientInfo\.recipientMetaInfo\.components\.\*\.size | numeric | 
+action\_result\.data\.\*\.recipientInfo\.recipientMetaInfo\.components\.\*\.type | string | 
+action\_result\.data\.\*\.recipientInfo\.recipientMetaInfo\.encryptionInfo | string | 
+action\_result\.data\.\*\.recipientInfo\.recipientMetaInfo\.messageExpiresIn | numeric | 
+action\_result\.data\.\*\.recipientInfo\.recipientMetaInfo\.processingServer | string | 
+action\_result\.data\.\*\.recipientInfo\.recipientMetaInfo\.receiptAcknowledgement | string | 
+action\_result\.data\.\*\.recipientInfo\.recipientMetaInfo\.receiptEvent | string | 
+action\_result\.data\.\*\.recipientInfo\.recipientMetaInfo\.remoteHost | string | 
+action\_result\.data\.\*\.recipientInfo\.recipientMetaInfo\.remoteIp | string |  `ip` 
+action\_result\.data\.\*\.recipientInfo\.recipientMetaInfo\.remoteServerGreeting | string | 
+action\_result\.data\.\*\.recipientInfo\.recipientMetaInfo\.spamEvent | string | 
+action\_result\.data\.\*\.recipientInfo\.recipientMetaInfo\.transmissionEnd | string | 
+action\_result\.data\.\*\.recipientInfo\.recipientMetaInfo\.transmissionSize | numeric | 
+action\_result\.data\.\*\.recipientInfo\.recipientMetaInfo\.transmissionStart | string | 
+action\_result\.data\.\*\.recipientInfo\.txInfo\.actualSize | numeric | 
+action\_result\.data\.\*\.recipientInfo\.txInfo\.compressedStoreSize | numeric | 
+action\_result\.data\.\*\.recipientInfo\.txInfo\.deliveryType | string | 
+action\_result\.data\.\*\.recipientInfo\.txInfo\.processEndTime | string | 
+action\_result\.data\.\*\.recipientInfo\.txInfo\.processStartTime | string | 
 action\_result\.data\.\*\.recipientInfo\.txInfo\.processingServer | string | 
 action\_result\.data\.\*\.recipientInfo\.txInfo\.queueDetailStatus | string | 
-action\_result\.data\.\*\.recipientInfo\.txInfo\.processStartTime | string | 
-action\_result\.data\.\*\.recipientInfo\.txInfo\.txEvent | string | 
 action\_result\.data\.\*\.recipientInfo\.txInfo\.receiptAck | string | 
-action\_result\.data\.\*\.recipientInfo\.txInfo\.remoteServerReceiptAck | string | 
-action\_result\.data\.\*\.recipientInfo\.txInfo\.actualSize | numeric | 
-action\_result\.data\.\*\.recipientInfo\.txInfo\.returnPath | string | 
-action\_result\.data\.\*\.recipientInfo\.txInfo\.smtpActualSize | numeric | 
-action\_result\.data\.\*\.recipientInfo\.txInfo\.deliveryType | string | 
-action\_result\.data\.\*\.recipientInfo\.txInfo\.remoteServerGreeting | string | 
-action\_result\.data\.\*\.recipientInfo\.txInfo\.transmissionComponents\.\*\.txSize | numeric | 
-action\_result\.data\.\*\.recipientInfo\.txInfo\.transmissionComponents\.\*\.fileType | string | 
-action\_result\.data\.\*\.recipientInfo\.txInfo\.transmissionComponents\.\*\.hash | string |  `sha256` 
-action\_result\.data\.\*\.recipientInfo\.txInfo\.transmissionComponents\.\*\.fileName | string | 
-action\_result\.data\.\*\.recipientInfo\.txInfo\.smtpEndTime | string | 
-action\_result\.data\.\*\.recipientInfo\.txInfo\.to | string |  `email` 
-action\_result\.data\.\*\.recipientInfo\.txInfo\.transmissionSize | numeric | 
 action\_result\.data\.\*\.recipientInfo\.txInfo\.remoteIp | string |  `ip` 
 action\_result\.data\.\*\.recipientInfo\.txInfo\.remoteServer | string | 
-action\_result\.data\.\*\.recipientInfo\.txInfo\.smtpStartTime | string | 
+action\_result\.data\.\*\.recipientInfo\.txInfo\.remoteServerGreeting | string | 
+action\_result\.data\.\*\.recipientInfo\.txInfo\.remoteServerReceiptAck | string | 
+action\_result\.data\.\*\.recipientInfo\.txInfo\.returnPath | string | 
+action\_result\.data\.\*\.recipientInfo\.txInfo\.smtpActualSize | numeric | 
 action\_result\.data\.\*\.recipientInfo\.txInfo\.smtpCompressedStoreSize | numeric | 
-action\_result\.data\.\*\.recipientInfo\.txInfo\.compressedStoreSize | numeric | 
-action\_result\.data\.\*\.recipientInfo\.txInfo\.processEndTime | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.messageInfo\.to | string |  `email` 
-action\_result\.data\.\*\.deliveredMessage\.\*\.messageInfo\.route | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.messageInfo\.transmissionInfo | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.messageInfo\.fromEnvelope | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.messageInfo\.processed | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.messageInfo\.fromHeader | string |  `email` 
-action\_result\.data\.\*\.deliveredMessage\.\*\.messageInfo\.sent | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.messageInfo\.subject | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.policyInfo\.\*\.inheritedCustomerCode | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.policyInfo\.\*\.policyName | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.policyInfo\.\*\.policyType | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.policyInfo\.\*\.inherited | boolean | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.processingServer | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.queueDetailStatus | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.processStartTime | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.txEvent | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.receiptAck | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.remoteServerReceiptAck | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.actualSize | numeric | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.returnPath | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.smtpActualSize | numeric | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.deliveryType | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.remoteServerGreeting | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.transmissionComponents\.\*\.txSize | numeric | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.transmissionComponents\.\*\.fileType | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.transmissionComponents\.\*\.hash | string |  `sha256` 
-action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.transmissionComponents\.\*\.fileName | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.smtpEndTime | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.to | string |  `email` 
-action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.transmissionSize | numeric | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.remoteIp | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.remoteServer | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.smtpStartTime | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.smtpCompressedStoreSize | numeric | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.compressedStoreSize | numeric | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.txInfo\.processEndTime | string | 
-action\_result\.data\.\*\.id | string | 
-action\_result\.data\.\*\.retentionInfo\.retentionAdjustmentDays | numeric | 
+action\_result\.data\.\*\.recipientInfo\.txInfo\.smtpEndTime | string | 
+action\_result\.data\.\*\.recipientInfo\.txInfo\.smtpStartTime | string | 
+action\_result\.data\.\*\.recipientInfo\.txInfo\.to | string |  `email` 
+action\_result\.data\.\*\.recipientInfo\.txInfo\.transmissionComponents\.\*\.fileName | string | 
+action\_result\.data\.\*\.recipientInfo\.txInfo\.transmissionComponents\.\*\.fileType | string | 
+action\_result\.data\.\*\.recipientInfo\.txInfo\.transmissionComponents\.\*\.hash | string |  `sha256` 
+action\_result\.data\.\*\.recipientInfo\.txInfo\.transmissionComponents\.\*\.txSize | numeric | 
+action\_result\.data\.\*\.recipientInfo\.txInfo\.transmissionSize | numeric | 
+action\_result\.data\.\*\.recipientInfo\.txInfo\.txEvent | string | 
 action\_result\.data\.\*\.retentionInfo\.currentPurgeDate | string | 
-action\_result\.data\.\*\.retentionInfo\.purgeBasedOn | string | 
 action\_result\.data\.\*\.retentionInfo\.originalPurgeDate | string | 
-action\_result\.data\.\*\.recipientInfo\.recipientMetaInfo\.processingServer | string | 
-action\_result\.data\.\*\.recipientInfo\.recipientMetaInfo\.remoteServerGreeting | string | 
-action\_result\.data\.\*\.recipientInfo\.recipientMetaInfo\.encryptionInfo | string | 
-action\_result\.data\.\*\.recipientInfo\.recipientMetaInfo\.transmissionSize | numeric | 
-action\_result\.data\.\*\.recipientInfo\.recipientMetaInfo\.spamEvent | string | 
-action\_result\.data\.\*\.recipientInfo\.recipientMetaInfo\.remoteHost | string | 
-action\_result\.data\.\*\.recipientInfo\.recipientMetaInfo\.transmissionStart | string | 
-action\_result\.data\.\*\.recipientInfo\.recipientMetaInfo\.transmissionEnd | string | 
-action\_result\.data\.\*\.recipientInfo\.recipientMetaInfo\.remoteIp | string |  `ip` 
-action\_result\.data\.\*\.recipientInfo\.recipientMetaInfo\.components\.\*\.mimeType | string | 
-action\_result\.data\.\*\.recipientInfo\.recipientMetaInfo\.components\.\*\.hash | string |  `sha256` 
-action\_result\.data\.\*\.recipientInfo\.recipientMetaInfo\.components\.\*\.name | string | 
-action\_result\.data\.\*\.recipientInfo\.recipientMetaInfo\.components\.\*\.extension | string | 
-action\_result\.data\.\*\.recipientInfo\.recipientMetaInfo\.components\.\*\.type | string | 
-action\_result\.data\.\*\.recipientInfo\.recipientMetaInfo\.components\.\*\.size | numeric | 
-action\_result\.data\.\*\.recipientInfo\.recipientMetaInfo\.receiptEvent | string | 
-action\_result\.data\.\*\.recipientInfo\.recipientMetaInfo\.receiptAcknowledgement | string | 
-action\_result\.data\.\*\.recipientInfo\.recipientMetaInfo\.messageExpiresIn | numeric | 
-action\_result\.data\.\*\.recipientInfo\.recipientMetaInfo\.binaryEmailSize | numeric | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.messageInfo\.to | string |  `email` 
-action\_result\.data\.\*\.deliveredMessage\.\*\.messageInfo\.route | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.messageInfo\.transmissionInfo | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.messageInfo\.fromEnvelope | string |  `email` 
-action\_result\.data\.\*\.deliveredMessage\.\*\.messageInfo\.processed | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.messageInfo\.fromHeader | string |  `email` 
-action\_result\.data\.\*\.deliveredMessage\.\*\.messageInfo\.sent | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.messageInfo\.subject | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.policyInfo\.\*\.policyName | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.policyInfo\.\*\.policyType | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.policyInfo\.\*\.inherited | boolean | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.deliveryMetaInfo\.processingServer | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.deliveryMetaInfo\.remoteServerGreeting | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.deliveryMetaInfo\.encryptionInfo | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.deliveryMetaInfo\.transmissionSize | numeric | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.deliveryMetaInfo\.remoteHost | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.deliveryMetaInfo\.deliveryEvent | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.deliveryMetaInfo\.transmissionStart | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.deliveryMetaInfo\.emailAddress | string |  `email` 
-action\_result\.data\.\*\.deliveredMessage\.\*\.deliveryMetaInfo\.remoteIp | string |  `ip` 
-action\_result\.data\.\*\.deliveredMessage\.\*\.deliveryMetaInfo\.components\.\*\.mimeType | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.deliveryMetaInfo\.components\.\*\.hash | string |  `sha256` 
-action\_result\.data\.\*\.deliveredMessage\.\*\.deliveryMetaInfo\.components\.\*\.name | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.deliveryMetaInfo\.components\.\*\.extension | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.deliveryMetaInfo\.components\.\*\.type | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.deliveryMetaInfo\.components\.\*\.size | numeric | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.deliveryMetaInfo\.transmissionEnd | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.deliveryMetaInfo\.receiptAcknowledgement | string | 
-action\_result\.data\.\*\.deliveredMessage\.\*\.deliveryMetaInfo\.messageExpiresIn | numeric | 
-action\_result\.status | string | 
-action\_result\.message | string | 
+action\_result\.data\.\*\.retentionInfo\.purgeBasedOn | string | 
+action\_result\.data\.\*\.retentionInfo\.retentionAdjustmentDays | numeric | 
+action\_result\.data\.\*\.spamInfo\.detectionLevel | string | 
+action\_result\.data\.\*\.spamInfo\.spamProcessingDetail\.dkim\.allow | boolean | 
+action\_result\.data\.\*\.spamInfo\.spamProcessingDetail\.dkim\.info | string | 
+action\_result\.data\.\*\.spamInfo\.spamProcessingDetail\.dmarc\.allow | boolean | 
+action\_result\.data\.\*\.spamInfo\.spamProcessingDetail\.dmarc\.info | string | 
+action\_result\.data\.\*\.spamInfo\.spamProcessingDetail\.greyEmail | boolean | 
+action\_result\.data\.\*\.spamInfo\.spamProcessingDetail\.managedSender\.allow | boolean | 
+action\_result\.data\.\*\.spamInfo\.spamProcessingDetail\.managedSender\.info | string | 
+action\_result\.data\.\*\.spamInfo\.spamProcessingDetail\.permittedSender\.allow | boolean | 
+action\_result\.data\.\*\.spamInfo\.spamProcessingDetail\.permittedSender\.info | string | 
+action\_result\.data\.\*\.spamInfo\.spamProcessingDetail\.rbl\.allow | boolean | 
+action\_result\.data\.\*\.spamInfo\.spamProcessingDetail\.rbl\.info | string | 
+action\_result\.data\.\*\.spamInfo\.spamProcessingDetail\.spf\.allow | boolean | 
+action\_result\.data\.\*\.spamInfo\.spamProcessingDetail\.spf\.info | string | 
+action\_result\.data\.\*\.spamInfo\.spamProcessingDetail\.symbolGroups\.\*\.description | string | 
+action\_result\.data\.\*\.spamInfo\.spamProcessingDetail\.symbolGroups\.\*\.name | string | 
+action\_result\.data\.\*\.spamInfo\.spamProcessingDetail\.verdict\.categories\.\*\.name | string | 
+action\_result\.data\.\*\.spamInfo\.spamProcessingDetail\.verdict\.categories\.\*\.risk | string | 
+action\_result\.data\.\*\.spamInfo\.spamProcessingDetail\.verdict\.categories\.\*\.subcategories\.\*\.augmentations\.\*\.name | string | 
+action\_result\.data\.\*\.spamInfo\.spamProcessingDetail\.verdict\.categories\.\*\.subcategories\.\*\.augmentations\.\*\.risk | string | 
+action\_result\.data\.\*\.spamInfo\.spamProcessingDetail\.verdict\.categories\.\*\.subcategories\.\*\.name | string | 
+action\_result\.data\.\*\.spamInfo\.spamProcessingDetail\.verdict\.categories\.\*\.subcategories\.\*\.risk | string | 
+action\_result\.data\.\*\.spamInfo\.spamProcessingDetail\.verdict\.decision | string | 
+action\_result\.data\.\*\.spamInfo\.spamProcessingDetail\.verdict\.description | string | 
+action\_result\.data\.\*\.spamInfo\.spamProcessingDetail\.verdict\.risk | string | 
+action\_result\.data\.\*\.spamInfo\.spamScore | numeric | 
+action\_result\.data\.\*\.status | string | 
 action\_result\.summary\.status | string | 
+action\_result\.message | string | 
 summary\.total\_objects | numeric | 
 summary\.total\_objects\_successful | numeric |   
 
@@ -850,19 +859,19 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 #### Action Output
 DATA PATH | TYPE | CONTAINS
 --------- | ---- | --------
-action\_result\.parameter\.url | string |  `url` 
-action\_result\.data\.\*\.data\.\*\.duration | numeric | 
-action\_result\.data\.\*\.data\.\*\.username | string | 
-action\_result\.data\.\*\.data\.\*\.accessKey | string | 
-action\_result\.data\.\*\.data\.\*\.secretKey | string | 
-action\_result\.data\.\*\.data\.\*\.bindingType | string | 
-action\_result\.data\.\*\.data\.\*\.lastUserToken | string | 
-action\_result\.data\.\*\.data\.\*\.extendOnValidate | boolean | 
-action\_result\.data\.\*\.meta\.status | numeric | 
-action\_result\.data\.\*\.url | string |  `url` 
-action\_result\.data\.\*\.success | boolean | 
 action\_result\.status | string | 
-action\_result\.message | string | 
+action\_result\.parameter\.url | string |  `url` 
+action\_result\.data\.\*\.data\.\*\.accessKey | string | 
+action\_result\.data\.\*\.data\.\*\.bindingType | string | 
+action\_result\.data\.\*\.data\.\*\.duration | numeric | 
+action\_result\.data\.\*\.data\.\*\.extendOnValidate | boolean | 
+action\_result\.data\.\*\.data\.\*\.lastUserToken | string | 
+action\_result\.data\.\*\.data\.\*\.secretKey | string | 
+action\_result\.data\.\*\.data\.\*\.username | string | 
+action\_result\.data\.\*\.meta\.status | numeric | 
+action\_result\.data\.\*\.success | boolean | 
+action\_result\.data\.\*\.url | string |  `url` 
 action\_result\.summary\.status | string | 
+action\_result\.message | string | 
 summary\.total\_objects | numeric | 
 summary\.total\_objects\_successful | numeric | 
