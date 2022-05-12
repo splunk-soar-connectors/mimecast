@@ -1112,7 +1112,7 @@ class MimecastConnector(BaseConnector):
                 self._access_key = None
                 self._secret_key = None
 
-        self.save_progress(self._auth_type)
+        self.save_progress(self._auth_type)  # nosemgrep
         return phantom.APP_SUCCESS
 
     def finalize(self):
