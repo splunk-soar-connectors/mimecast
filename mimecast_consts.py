@@ -41,7 +41,7 @@ MIMECAST_ERR_ENCODING_SECRET_KEY = "Error occurred while encoding secret key. Pl
 MIMECAST_ERR_BYPASS_AUTH = "Please provide Mimecast 'Secret Key' and 'Access Key' for Bypass Authentication"
 
 # API Endpoints
-MIMECAST_API_BASE_URL = "https://api.services.mimecast.com"
+MIMECAST_API_BASE_URL_DEFAULT = "https://api.services.mimecast.com"
 MIMECAST_API_PATH_OAUTH_TOKEN = "/oauth/token"
 
 # TTP (Targeted Threat Protection) URLs

@@ -15,6 +15,7 @@
 #
 #
 import json
+import uuid
 from datetime import datetime, timedelta
 
 import dateutil.parser
@@ -43,7 +44,7 @@ class MimecastConnector(BaseConnector):
         # Variable to hold a base_url in case the app makes REST calls
         # Do note that the app json defines the asset config, so please
         # modify this as you deem fit.
-        self._base_url = MIMECAST_API_BASE_URL  # Use constant instead of hardcoded URL
+        self._base_url = None
 
         self._client_id = None
         self._client_secret = None
@@ -97,19 +98,6 @@ class MimecastConnector(BaseConnector):
 
         # Add buffer time of 5 minutes before expiration
         return datetime.utcnow() < (self._token_expires_at - timedelta(minutes=5))
-
-    def _get_request_headers(self, action_result):
-        """Get headers for API v2.0 requests with OAuth2 authentication"""
-
-        # Check if token is valid, if not get a new one
-        if not self._is_token_valid():
-            ret_val = self._get_token(action_result)
-            if phantom.is_fail(ret_val):
-                return None
-
-        headers = {"Authorization": f"Bearer {self._access_token}", "Content-Type": "application/json", "Accept": "application/json"}
-
-        return headers
 
     def _reset_state_file(self):
         """
@@ -316,7 +304,7 @@ class MimecastConnector(BaseConnector):
                 return RetVal(action_result.get_status(), None)
 
         # Set up headers with OAuth2 token
-        headers = {"Authorization": f"Bearer {self._access_token}", "Content-Type": "application/json", "Accept": "application/json"}
+        headers = {"Authorization": f"Bearer {self._access_token}", "Content-Type": "application/json", "x-request-id": str(uuid.uuid4())}
 
         try:
             request_func = getattr(requests, method)
@@ -933,6 +921,7 @@ class MimecastConnector(BaseConnector):
             self._reset_state_file()
 
         config = self.get_config()
+        self._base_url = config.get("base_url", MIMECAST_API_BASE_URL_DEFAULT)
         self._client_id = config["client_id"]
         self._client_secret = config["client_secret"]
         self._asset_id = self.get_asset_id()
