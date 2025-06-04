@@ -14,18 +14,14 @@
 # and limitations under the License.
 #
 #
-import base64
-import datetime
-import hashlib
-import hmac
 import json
-import uuid
+from datetime import datetime, timedelta
 
 import dateutil.parser
 import encryption_helper
 import phantom.app as phantom
 import requests
-from bs4 import BeautifulSoup, UnicodeDammit
+from bs4 import BeautifulSoup
 from phantom.action_result import ActionResult
 from phantom.base_connector import BaseConnector
 
@@ -47,85 +43,80 @@ class MimecastConnector(BaseConnector):
         # Variable to hold a base_url in case the app makes REST calls
         # Do note that the app json defines the asset config, so please
         # modify this as you deem fit.
-        self._base_url = None
+        self._base_url = MIMECAST_API_BASE_URL  # Use constant instead of hardcoded URL
 
-        self._username = None
-        self._password = None
-        self._app_id = None
-        self._app_key = None
-        self._auth_type = None
-        self._access_key = None
-        self._secret_key = None
+        self._client_id = None
+        self._client_secret = None
+        self._access_token = None
+        self._token_expires_at = None
         self._asset_id = None
 
-    def _login(self, action_result):
-        uri = "/api/login/login"
-        auth_type = "Basic-AD" if self._auth_type == "Domain" else "Basic-Cloud"
-        try:
-            encoded_auth_token = base64.b64encode(f"{self._username}:{self._password}")
-        except Exception:
-            # In Python v3, strings are not binary,
-            # so we need to explicitly convert them to 'bytes' (which are binary)
-            # We need to convert 'bytes' back to string,
-            # as the contents of headers are of the 'string' form
-            byte_str = bytes((f"{self._username}:{self._password}"), "utf-8")
-            encoded_auth_token = base64.b64encode(byte_str).decode("utf-8")
-        headers = {
-            "Authorization": f"{auth_type} {encoded_auth_token}",
-            "x-mc-app-id": self._app_id,
-            "x-mc-date": "{} UTC".format(datetime.datetime.utcnow().strftime("%a, %d %b %Y %H:%M:%S")),
-            "x-mc-req-id": str(uuid.uuid4()),
-            "Content-Type": "application/json",
-        }
-        body = {"data": [{"userName": self._username}]}
-        ret_val, response = self._make_rest_call(uri, action_result, data=body, headers=headers, method="post")
+    def _get_token(self, action_result):
+        """Get a new OAuth2 access token using client credentials flow"""
 
-        if phantom.is_fail(ret_val):
-            return action_result.get_status()
-        self.save_progress("Login successful")
-        try:
-            self._access_key = response["data"][0]["accessKey"]
-            self._secret_key = response["data"][0]["secretKey"]
-        except Exception:
-            return action_result.set_status(phantom.APP_ERROR, MIMECAST_ERR_PROCESSING_RESPONSE)
-        action_result.add_data(response)
-        return action_result.set_status(phantom.APP_SUCCESS, "Successfully set accessKey and secretKey")
+        headers = {"Content-Type": "application/x-www-form-urlencoded"}
 
-    def _get_request_headers(self, uri, action_result, expired=False):
-        if not self._access_key or not self._secret_key:
-            self._login(action_result)
-            if action_result.get_status() is False:
-                self.save_progress("Failed login with given credentials")
-                return None
-        else:
-            self.save_progress("Skipped login")
-        request_id = str(uuid.uuid4())
-        hdr_date = "{} UTC".format(datetime.datetime.utcnow().strftime("%a, %d %b %Y %H:%M:%S"))
-        # The 'hmac' library on Python v3 expects the parameters in bytes (or binary format),
-        # while the 'hmac' library on Python v2 expects the parameters in string
-        # (which are stored in binary and Unicode form on Python v2 and Python v3 respectively).
-        # UnicodeDammit.unicode_markup.encode() works for both the versions, as it converts the
-        # provided input to string on Python v2 and bytes on Python v3.
-        encoded_secret_key = UnicodeDammit(self._secret_key).unicode_markup.encode("utf-8")
-        encoded_msg = UnicodeDammit(":".join([hdr_date, request_id, uri, self._app_key])).unicode_markup.encode("utf-8")
+        data = {"client_id": self._client_id, "client_secret": self._client_secret, "grant_type": "client_credentials"}
+
         try:
-            hmac_sha1 = hmac.new(base64.b64decode(encoded_secret_key), encoded_msg, digestmod=hashlib.sha1).digest()
-            sig = base64.encodebytes(hmac_sha1).rstrip()
+            response = requests.post(
+                f"{self._base_url}{MIMECAST_API_PATH_OAUTH_TOKEN}",
+                headers=headers,
+                data=data,
+                verify=self.get_config().get("verify_server_cert", False),
+                timeout=DEFAULT_TIMEOUT,
+            )
+
+            if response.status_code != 200:
+                return action_result.set_status(
+                    phantom.APP_ERROR, f"Failed to get access token. Status code: {response.status_code}. Response: {response.text}"
+                )
+
+            token_data = response.json()
+            self._access_token = token_data.get("access_token")
+            expires_in = token_data.get("expires_in", 3600)  # Default 1 hour if not specified
+            self._token_expires_at = datetime.utcnow() + timedelta(seconds=expires_in)
+
+            # Save token info to state
+            try:
+                self._state["access_token"] = encryption_helper.encrypt(self._access_token, self._asset_id)
+                self._state["token_expires_at"] = self._token_expires_at.isoformat()
+                self.save_state(self._state)
+            except Exception as e:
+                self.debug_print(f"Error saving token to state: {e!s}")
+
+            return phantom.APP_SUCCESS
+
         except Exception as e:
-            self.debug_print(self._get_error_message_from_exception(e))
-            self.save_progress(MIMECAST_ERR_ENCODING_SECRET_KEY)
-            return None
-        # For Python v3 'bytes' need to be converted back to 'string'
-        # as the contents of headers are of the 'string' form
-        decoded_sig = UnicodeDammit(sig).unicode_markup
-        headers = {
-            "Authorization": f"MC {self._access_key}:{decoded_sig}",
-            "x-mc-app-id": self._app_id,
-            "x-mc-date": hdr_date,
-            "x-mc-req-id": request_id,
-            "Content-Type": "application/json",
-        }
+            return action_result.set_status(phantom.APP_ERROR, f"Error getting access token: {e!s}")
+
+    def _is_token_valid(self):
+        """Check if the current access token is valid"""
+        if not self._access_token or not self._token_expires_at:
+            return False
+
+        # Add buffer time of 5 minutes before expiration
+        return datetime.utcnow() < (self._token_expires_at - timedelta(minutes=5))
+
+    def _get_request_headers(self, action_result):
+        """Get headers for API v2.0 requests with OAuth2 authentication"""
+
+        # Check if token is valid, if not get a new one
+        if not self._is_token_valid():
+            ret_val = self._get_token(action_result)
+            if phantom.is_fail(ret_val):
+                return None
+
+        headers = {"Authorization": f"Bearer {self._access_token}", "Content-Type": "application/json", "Accept": "application/json"}
+
         return headers
+
+    def _reset_state_file(self):
+        """
+        This method resets the state file.
+        """
+        self.debug_print("Resetting the state file with the default format")
+        self._state = {"app_version": self.get_app_json().get("app_version")}
 
     def _process_empty_response(self, response, action_result):
         if response.status_code == 200:
@@ -168,7 +159,7 @@ class MimecastConnector(BaseConnector):
             )
 
         # Please specify the status codes here
-        if not resp_json["fail"]:
+        if not resp_json.get("fail", False):
             return RetVal(phantom.APP_SUCCESS, resp_json)
 
         # You should process the error returned in the json
@@ -315,82 +306,86 @@ class MimecastConnector(BaseConnector):
 
         return ret_val, response
 
-    def _make_rest_call_helper(self, endpoint, action_result, headers=None, params=None, data=None, method="get", **kwargs):
-        ret_val, response = self._make_rest_call(endpoint, action_result, headers, params, data, method, **kwargs)
+    def _make_rest_call_helper(self, endpoint, action_result, params=None, data=None, method="get", **kwargs):
+        """Helper function to make REST calls with OAuth2 authentication"""
 
-        if not phantom.is_fail(ret_val):
-            return ret_val, response
+        # Check if token is valid, if not get a new one
+        if not self._is_token_valid():
+            ret_val = self._get_token(action_result)
+            if phantom.is_fail(ret_val):
+                return RetVal(action_result.get_status(), None)
 
-        # If token is expired, generate a new token
-        msg = action_result.get_message()
-
-        if "AccessKey Has Expired" in msg:
-            # Resetting the access_key and secret_key to None
-            # will generate new access_key and secret_key.
-            self._access_key = None
-            self._secret_key = None
-            headers = self._get_request_headers(endpoint, action_result)
-
-            if headers is None:
-                return action_result.get_status(), None
-
-            ret_val, response = self._make_rest_call(endpoint, action_result, headers, params, data, method, **kwargs)
-
-        if phantom.is_fail(ret_val):
-            return action_result.get_status(), None
-
-        return ret_val, response
-
-    def _make_rest_call(self, endpoint, action_result, headers=None, params=None, data=None, method="get", **kwargs):
-        # **kwargs can be any additional parameters that requests.request accepts
-        config = self.get_config()
-
-        resp_json = None
+        # Set up headers with OAuth2 token
+        headers = {"Authorization": f"Bearer {self._access_token}", "Content-Type": "application/json", "Accept": "application/json"}
 
         try:
             request_func = getattr(requests, method)
         except AttributeError:
-            return RetVal(action_result.set_status(phantom.APP_ERROR, f"Invalid method: {method}"), resp_json)
+            return RetVal(action_result.set_status(phantom.APP_ERROR, f"Invalid method: {method}"), None)
 
-        # Create a URL to connect to
         url = f"{self._base_url}{endpoint}"
 
         try:
             r = request_func(
-                url, headers=headers, json=data, verify=config.get("verify_server_cert", False), params=params, timeout=DEFAULT_TIMEOUT
+                url,
+                headers=headers,
+                json=data,
+                verify=self.get_config().get("verify_server_cert", False),
+                params=params,
+                timeout=DEFAULT_TIMEOUT,
             )
+
+            # If token is expired, try to get a new one and retry the request
+            if r.status_code == 401:
+                ret_val = self._get_token(action_result)
+                if phantom.is_fail(ret_val):
+                    return RetVal(action_result.get_status(), None)
+
+                # Update headers with new token
+                headers["Authorization"] = f"Bearer {self._access_token}"
+
+                # Retry the request
+                r = request_func(
+                    url,
+                    headers=headers,
+                    json=data,
+                    verify=self.get_config().get("verify_server_cert", False),
+                    params=params,
+                    timeout=DEFAULT_TIMEOUT,
+                )
+
         except requests.exceptions.InvalidSchema:
             err_msg = f"Error connecting to server. No connection adapters were found for {url}"
-            return RetVal(action_result.set_status(phantom.APP_ERROR, err_msg), resp_json)
+            return RetVal(action_result.set_status(phantom.APP_ERROR, err_msg), None)
         except requests.exceptions.InvalidURL:
             err_msg = f"Error connecting to server. Invalid URL {url}"
-            return RetVal(action_result.set_status(phantom.APP_ERROR, err_msg), resp_json)
+            return RetVal(action_result.set_status(phantom.APP_ERROR, err_msg), None)
         except requests.exceptions.ConnectionError:
             err_msg = f"Error Details: Connection Refused from the Server {url}"
-            return RetVal(action_result.set_status(phantom.APP_ERROR, err_msg), resp_json)
+            return RetVal(action_result.set_status(phantom.APP_ERROR, err_msg), None)
         except Exception as e:
             return RetVal(
                 action_result.set_status(
                     phantom.APP_ERROR, MIMECAST_ERR_CONNECTING_SERVER.format(error=self._get_error_message_from_exception(e))
                 ),
-                resp_json,
+                None,
             )
+
         return self._process_response(r, action_result)
 
     def _handle_test_connectivity(self, param):
         action_result = self.add_action_result(ActionResult(dict(param)))
-        uri = "/api/ttp/url/get-all-managed-urls"
-        if self._auth_type != "Bypass (Access Key)":
-            self._access_key = None
-            self._secret_key = None
-        headers = self._get_request_headers(uri, action_result)
-        if headers is None:
-            self.save_progress(MIMECAST_ERR_TEST_CONN_FAILED)
-            return action_result.set_status(phantom.APP_ERROR, action_result.get_message())
-        data = {"data": []}
 
-        self.save_progress("Querying endpoint")
-        ret_val, _ = self._make_rest_call(uri, action_result, params=None, headers=headers, method="post", data=data)
+        # Test OAuth2 token acquisition
+        self.save_progress("Getting OAuth2 access token...")
+        ret_val = self._get_token(action_result)
+        if phantom.is_fail(ret_val):
+            self.save_progress(MIMECAST_ERR_TEST_CONN_FAILED)
+            return action_result.get_status()
+
+        # Test API access with the token
+        self.save_progress("Testing API access...")
+        ret_val, _ = self._make_rest_call_helper(MIMECAST_API_PATH_URL_GET_ALL, action_result, method="post", data={"data": []})
         if phantom.is_fail(ret_val):
             self.save_progress(MIMECAST_ERR_TEST_CONN_FAILED)
             return action_result.get_status()
@@ -400,10 +395,7 @@ class MimecastConnector(BaseConnector):
 
     def _handle_blocklist_url(self, param):
         self.save_progress(f"In action handler for: {self.get_action_identifier()}")
-
         action_result = self.add_action_result(ActionResult(dict(param)))
-        uri = "/api/ttp/url/create-managed-url"
-        headers = self._get_request_headers(uri=uri, action_result=action_result)
 
         # Flipping logic to make 'enable' checkboxes for better UX
         if param.get("enable_log_click"):
@@ -423,10 +415,11 @@ class MimecastConnector(BaseConnector):
             ]
         }
 
-        ret_val, response = self._make_rest_call_helper(uri, action_result, headers=headers, method="post", data=data)
+        ret_val, response = self._make_rest_call_helper(MIMECAST_API_PATH_URL_CREATE, action_result, method="post", data=data)
 
         if phantom.is_fail(ret_val):
             return ret_val
+
         try:
             action_result.add_data(response["data"][0])
         except Exception:
@@ -439,20 +432,16 @@ class MimecastConnector(BaseConnector):
 
     def _handle_unblocklist_url(self, param):
         self.debug_print(f"In action handler for: {self.get_action_identifier()}")
-
         self.debug_print("Calling unallowlist_url as both action uses same endpoint")
         return self._handle_unallowlist_url(param)
 
     def _handle_unallowlist_url(self, param):
         self.save_progress(f"In action handler for: {self.get_action_identifier()}")
-
         action_result = self.add_action_result(ActionResult(dict(param)))
-        uri = "/api/ttp/url/delete-managed-url"
-        headers = self._get_request_headers(uri=uri, action_result=action_result)
 
         data = {"data": [{"id": param["id"]}]}
 
-        ret_val, response = self._make_rest_call_helper(uri, action_result, headers=headers, method="post", data=data)
+        ret_val, response = self._make_rest_call_helper(MIMECAST_API_PATH_URL_DELETE, action_result, method="post", data=data)
 
         if phantom.is_fail(ret_val):
             return ret_val
@@ -466,10 +455,7 @@ class MimecastConnector(BaseConnector):
 
     def _handle_allowlist_url(self, param):
         self.save_progress(f"In action handler for: {self.get_action_identifier()}")
-
         action_result = self.add_action_result(ActionResult(dict(param)))
-        uri = "/api/ttp/url/create-managed-url"
-        headers = self._get_request_headers(uri=uri, action_result=action_result)
 
         # Flipping logic to make 'enable' checkboxes for better UX
         if param.get("enable_log_click"):
@@ -501,7 +487,7 @@ class MimecastConnector(BaseConnector):
             ]
         }
 
-        ret_val, response = self._make_rest_call_helper(uri, action_result, headers=headers, method="post", data=data)
+        ret_val, response = self._make_rest_call_helper(MIMECAST_API_PATH_URL_CREATE, action_result, method="post", data=data)
 
         if phantom.is_fail(ret_val):
             return ret_val
@@ -518,10 +504,7 @@ class MimecastConnector(BaseConnector):
 
     def _handle_add_member(self, param):
         self.save_progress(f"In action handler for: {self.get_action_identifier()}")
-
         action_result = self.add_action_result(ActionResult(dict(param)))
-        uri = "/api/directory/add-group-member"
-        headers = self._get_request_headers(uri=uri, action_result=action_result)
 
         data = {"data": [{"id": param["id"]}]}
 
@@ -536,7 +519,7 @@ class MimecastConnector(BaseConnector):
         if data_object:
             data["data"][0].update(data_object)
 
-        ret_val, response = self._make_rest_call_helper(uri, action_result, headers=headers, method="post", data=data)
+        ret_val, response = self._make_rest_call_helper(MIMECAST_API_PATH_GROUP_MEMBER_ADD, action_result, method="post", data=data)
 
         if phantom.is_fail(ret_val):
             return ret_val
@@ -553,10 +536,7 @@ class MimecastConnector(BaseConnector):
 
     def _handle_remove_member(self, param):
         self.save_progress(f"In action handler for: {self.get_action_identifier()}")
-
         action_result = self.add_action_result(ActionResult(dict(param)))
-        uri = "/api/directory/remove-group-member"
-        headers = self._get_request_headers(uri=uri, action_result=action_result)
 
         data = {"data": [{"id": param["id"]}]}
 
@@ -571,7 +551,7 @@ class MimecastConnector(BaseConnector):
         if data_object:
             data["data"][0].update(data_object)
 
-        ret_val, response = self._make_rest_call_helper(uri, action_result, headers=headers, method="post", data=data)
+        ret_val, response = self._make_rest_call_helper(MIMECAST_API_PATH_GROUP_MEMBER_REMOVE, action_result, method="post", data=data)
 
         if phantom.is_fail(ret_val):
             return ret_val
@@ -588,16 +568,12 @@ class MimecastConnector(BaseConnector):
 
     def _handle_allowlist_sender(self, param):
         self.debug_print(f"In action handler for: {self.get_action_identifier()}")
-
         self.debug_print("Calling blocklist_sender as both action uses same endpoint")
         return self._handle_blocklist_sender(param)
 
     def _handle_blocklist_sender(self, param):
         self.save_progress(f"In action handler for: {self.get_action_identifier()}")
-
         action_result = self.add_action_result(ActionResult(dict(param)))
-        uri = "/api/managedsender/permit-or-block-sender"
-        headers = self._get_request_headers(uri=uri, action_result=action_result)
 
         action_id = self.get_action_identifier()
         action = None
@@ -609,7 +585,7 @@ class MimecastConnector(BaseConnector):
 
         data = {"data": [{"sender": param["sender"], "to": param["to"], "action": action}]}
 
-        ret_val, response = self._make_rest_call_helper(uri, action_result, headers=headers, method="post", data=data)
+        ret_val, response = self._make_rest_call_helper(MIMECAST_API_PATH_SENDER_MANAGE, action_result, method="post", data=data)
 
         if phantom.is_fail(ret_val):
             return ret_val
@@ -626,10 +602,7 @@ class MimecastConnector(BaseConnector):
 
     def _handle_list_urls(self, param):
         self.save_progress(f"In action handler for: {self.get_action_identifier()}")
-
         action_result = self.add_action_result(ActionResult(dict(param)))
-        uri = "/api/ttp/url/get-all-managed-urls"
-        headers = self._get_request_headers(uri=uri, action_result=action_result)
 
         data = {"meta": {"pagination": {"pageToken": None}}, "data": []}
 
@@ -639,7 +612,7 @@ class MimecastConnector(BaseConnector):
             if limit is None:
                 return action_result.get_status()
 
-        ret_val, response = self._paginator(uri, action_result, limit=limit, headers=headers, method="post", data=data)
+        ret_val, response = self._paginator(MIMECAST_API_PATH_URL_GET_ALL, action_result, limit=limit, method="post", data=data)
 
         if phantom.is_fail(ret_val):
             return ret_val
@@ -654,10 +627,7 @@ class MimecastConnector(BaseConnector):
 
     def _handle_list_groups(self, param):
         self.save_progress(f"In action handler for: {self.get_action_identifier()}")
-
         action_result = self.add_action_result(ActionResult(dict(param)))
-        uri = "/api/directory/find-groups"
-        headers = self._get_request_headers(uri=uri, action_result=action_result)
 
         data = {"meta": {"pagination": {"pageToken": None}}, "data": []}
 
@@ -679,7 +649,9 @@ class MimecastConnector(BaseConnector):
             if limit is None:
                 return action_result.get_status()
 
-        ret_val, response = self._paginator(uri, action_result, limit=limit, headers=headers, method="post", data=data, data_key="folders")
+        ret_val, response = self._paginator(
+            MIMECAST_API_PATH_GROUP_LIST, action_result, limit=limit, method="post", data=data, data_key="folders"
+        )
 
         if phantom.is_fail(ret_val):
             return ret_val
@@ -698,10 +670,7 @@ class MimecastConnector(BaseConnector):
 
     def _handle_list_members(self, param):
         self.save_progress(f"In action handler for: {self.get_action_identifier()}")
-
         action_result = self.add_action_result(ActionResult(dict(param)))
-        uri = "/api/directory/get-group-members"
-        headers = self._get_request_headers(uri=uri, action_result=action_result)
 
         data = {"meta": {"pagination": {"pageToken": None}}, "data": [{"id": param["id"]}]}
 
@@ -711,16 +680,16 @@ class MimecastConnector(BaseConnector):
             if limit is None:
                 return action_result.get_status()
 
-        ret_val, response = self._paginator(uri, action_result, limit=limit, headers=headers, method="post", data=data, data_key="groupMembers")
+        ret_val, response = self._paginator(
+            MIMECAST_API_PATH_GROUP_MEMBERS, action_result, limit=limit, method="post", data=data, data_key="groupMembers"
+        )
 
         if phantom.is_fail(ret_val):
             return ret_val
 
         try:
             response["members"] = response.pop("data")
-
             action_result.add_data(response)
-
             summary = action_result.update_summary({})
             summary["num_group_members"] = len(response["members"][0]["groupMembers"])
         except Exception:
@@ -730,10 +699,7 @@ class MimecastConnector(BaseConnector):
 
     def _handle_find_member(self, param):
         self.save_progress(f"In action handler for: {self.get_action_identifier()}")
-
         action_result = self.add_action_result(ActionResult(dict(param)))
-        uri = "/api/directory/get-group-members"
-        headers = self._get_request_headers(uri=uri, action_result=action_result)
         member = param["member"]
         type_list = ["email", "domain"]
         search_type = param["type"]
@@ -746,13 +712,12 @@ class MimecastConnector(BaseConnector):
 
         # Mimecast API only returns a maximum of 100 results. Looping is needed for groups with 100+ members
         while True:
-            ret_val, response = self._make_rest_call_helper(uri, action_result, headers=headers, method="post", data=data)
+            ret_val, response = self._make_rest_call_helper(MIMECAST_API_PATH_GROUP_MEMBERS, action_result, method="post", data=data)
 
             if phantom.is_fail(ret_val):
                 return ret_val
             try:
                 response["members"] = response.pop("data")
-
                 group_members = response["members"][0]["groupMembers"]
                 next_token = response["meta"]["pagination"].get("next")
             except Exception:
@@ -774,10 +739,7 @@ class MimecastConnector(BaseConnector):
 
     def _handle_run_query(self, param):
         self.save_progress(f"In action handler for: {self.get_action_identifier()}")
-
         action_result = self.add_action_result(ActionResult(dict(param)))
-        uri = "/api/message-finder/search"
-        headers = self._get_request_headers(uri=uri, action_result=action_result)
 
         data = {"data": [{}]}
         message_id = param.get("message_id")
@@ -847,7 +809,7 @@ class MimecastConnector(BaseConnector):
         if data_object:
             data["data"][0].update(data_object)
 
-        ret_val, response = self._make_rest_call_helper(uri, action_result, headers=headers, method="post", data=data)
+        ret_val, response = self._make_rest_call_helper(MIMECAST_API_PATH_MESSAGE_SEARCH, action_result, method="post", data=data)
 
         if phantom.is_fail(ret_val):
             return ret_val
@@ -865,14 +827,11 @@ class MimecastConnector(BaseConnector):
 
     def _handle_get_email(self, param):
         self.save_progress(f"In action handler for: {self.get_action_identifier()}")
-
         action_result = self.add_action_result(ActionResult(dict(param)))
-        uri = "/api/message-finder/get-message-info"
-        headers = self._get_request_headers(uri=uri, action_result=action_result)
 
         data = {"data": [{"id": param["id"]}]}
 
-        ret_val, response = self._make_rest_call_helper(uri, action_result, headers=headers, method="post", data=data)
+        ret_val, response = self._make_rest_call_helper(MIMECAST_API_PATH_MESSAGE_GET, action_result, method="post", data=data)
 
         if phantom.is_fail(ret_val):
             return ret_val
@@ -889,14 +848,11 @@ class MimecastConnector(BaseConnector):
 
     def _handle_decode_url(self, param):
         self.save_progress(f"In action handler for: {self.get_action_identifier()}")
-
         action_result = self.add_action_result(ActionResult(dict(param)))
-        uri = "/api/ttp/url/decode-url"
-        headers = self._get_request_headers(uri=uri, action_result=action_result)
 
         data = {"data": [{"url": param["url"]}]}
 
-        ret_val, response = self._make_rest_call_helper(uri, action_result, headers=headers, method="post", data=data)
+        ret_val, response = self._make_rest_call_helper(MIMECAST_API_PATH_URL_DECODE, action_result, method="post", data=data)
 
         if phantom.is_fail(ret_val):
             return ret_val
@@ -969,13 +925,6 @@ class MimecastConnector(BaseConnector):
 
         return ret_val
 
-    def _reset_state_file(self):
-        """
-        This method resets the state file.
-        """
-        self.debug_print("Resetting the state file with the default format")
-        self._state = {"app_version": self.get_app_json().get("app_version")}
-
     def initialize(self):
         # Load the state in initialize, use it to store data
         # that needs to be accessed across actions
@@ -984,46 +933,31 @@ class MimecastConnector(BaseConnector):
             self._reset_state_file()
 
         config = self.get_config()
-        self._base_url = config["base_url"].rstrip("/")
-        self._username = config.get("username")
-        self._password = config.get("password")
-        self._app_id = config["app_id"]
-        self._app_key = config["app_key"]
-        self._auth_type = config["auth_type"]
-
+        self._client_id = config["client_id"]
+        self._client_secret = config["client_secret"]
         self._asset_id = self.get_asset_id()
 
-        if self._auth_type == "Bypass (Access Key)":
-            self._access_key = config.get("access_key")
-            self._secret_key = config.get("secret_key")
-            if self._access_key is None or self._secret_key is None:
-                return self.set_status(phantom.APP_ERROR, MIMECAST_ERR_BYPASS_AUTH)
-        else:
-            try:
-                self._access_key = self._state.get("access_key")
-                if self._access_key:
-                    self._access_key = encryption_helper.decrypt(self._access_key, self._asset_id)
-                self._secret_key = self._state.get("secret_key")
-                if self._secret_key:
-                    self._secret_key = encryption_helper.decrypt(self._secret_key, self._asset_id)
-            except Exception as e:
-                self.debug_print(f"Error occurred while decrypting the state file. {e!s}")
-                self._reset_state_file()
-                self._access_key = None
-                self._secret_key = None
-
-        self.save_progress(self._auth_type)  # nosemgrep
+        # Try to load token from state
+        try:
+            if self._state.get("access_token"):
+                self._access_token = encryption_helper.decrypt(self._state["access_token"], self._asset_id)
+                self._token_expires_at = datetime.fromisoformat(self._state.get("token_expires_at", ""))
+        except Exception as e:
+            self.debug_print(f"Error loading token from state: {e!s}")
+            self._access_token = None
+            self._token_expires_at = None
         return phantom.APP_SUCCESS
 
     def finalize(self):
         # Save the state, this data is saved across actions and app upgrades
-        if self._auth_type != "Bypass (Access Key)" and self._access_key and self._secret_key:
+        if self._access_token:
             try:
-                self._state["access_key"] = encryption_helper.encrypt(self._access_key, self._asset_id)
-                self._state["secret_key"] = encryption_helper.encrypt(self._secret_key, self._asset_id)
+                self._state["access_token"] = encryption_helper.encrypt(self._access_token, self._asset_id)
+                if self._token_expires_at:
+                    self._state["token_expires_at"] = self._token_expires_at.isoformat()
             except Exception as e:
-                self.debug_print(f"Error occurred while encrypting the state file. {e!s}")
-                self._reset_state_file()
+                self.debug_print(f"Error saving token to state: {e!s}")
+                self._state = {"app_version": self.get_app_json().get("app_version")}
 
         self.save_state(self._state)
         return phantom.APP_SUCCESS

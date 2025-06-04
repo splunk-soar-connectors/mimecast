@@ -39,3 +39,26 @@ MIMECAST_SUCC_DECODE_URL = "Successfully decoded URL"
 # pragma: allowlist nextline secret
 MIMECAST_ERR_ENCODING_SECRET_KEY = "Error occurred while encoding secret key. Please provide a valid secret key value."
 MIMECAST_ERR_BYPASS_AUTH = "Please provide Mimecast 'Secret Key' and 'Access Key' for Bypass Authentication"
+
+# API Endpoints
+MIMECAST_API_BASE_URL = "https://api.services.mimecast.com"
+MIMECAST_API_PATH_OAUTH_TOKEN = "/oauth/token"
+
+# TTP (Targeted Threat Protection) URLs
+MIMECAST_API_PATH_URL_GET_ALL = "/api/ttp/url/get-all-managed-urls"
+MIMECAST_API_PATH_URL_CREATE = "/api/ttp/url/create-managed-url"
+MIMECAST_API_PATH_URL_DELETE = "/api/ttp/url/delete-managed-url"
+MIMECAST_API_PATH_URL_DECODE = "/api/ttp/url/decode-url"
+
+# Directory Management
+MIMECAST_API_PATH_GROUP_MEMBER_ADD = "/api/directory/add-group-member"
+MIMECAST_API_PATH_GROUP_MEMBER_REMOVE = "/api/directory/remove-group-member"
+MIMECAST_API_PATH_GROUP_LIST = "/api/directory/find-groups"
+MIMECAST_API_PATH_GROUP_MEMBERS = "/api/directory/get-group-members"
+
+# Sender Management
+MIMECAST_API_PATH_SENDER_MANAGE = "/api/managedsender/permit-or-block-sender"
+
+# Message Management
+MIMECAST_API_PATH_MESSAGE_SEARCH = "/api/message-finder/search"
+MIMECAST_API_PATH_MESSAGE_GET = "/api/message-finder/get-message-info"

@@ -4,7 +4,7 @@ Publisher: Splunk \
 Connector Version: 2.3.7 \
 Product Vendor: Mimecast \
 Product Name: Mimecast \
-Minimum Product Version: 5.2.0
+Minimum Product Version: 6.3.0
 
 This app integrates with an instance of Mimecast to perform generic, investigative, and containment actions
 
@@ -80,14 +80,8 @@ This table lists the configuration variables required to operate Mimecast. These
 
 VARIABLE | REQUIRED | TYPE | DESCRIPTION
 -------- | -------- | ---- | -----------
-**base_url** | required | string | Mimecast Base URL |
-**auth_type** | required | string | Type of Authentication |
-**username** | optional | string | Username for Domain or Cloud Authentication |
-**password** | optional | password | Password for Domain or Cloud Authentication |
-**app_id** | required | string | Mimecast App ID |
-**app_key** | required | password | Mimecast App Key |
-**access_key** | optional | password | Mimecast Access Key for Bypass Authentication |
-**secret_key** | optional | password | Mimecast Secret Key for Bypass Authentication |
+**client_id** | required | string | Client ID (API 2.0 Application) |
+**client_secret** | required | password | Client Secret (API 2.0 Application) |
 
 ### Supported Actions
 

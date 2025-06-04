@@ -16,60 +16,23 @@
     "utctime_updated": "2025-04-28T21:18:28.668113Z",
     "package_name": "phantom_mimecast",
     "main_module": "mimecast_connector.py",
-    "min_phantom_version": "5.2.0",
+    "min_phantom_version": "6.3.0",
     "app_wizard_version": "1.0.0",
     "latest_tested_versions": [
-        "Cloud, v1.5.16, May 09, 2022"
+        "Cloud, v2.0, Jun 04, 2025"
     ],
     "configuration": {
-        "base_url": {
-            "description": "Mimecast Base URL",
+        "client_id": {
+            "description": "Client ID (API 2.0 Application)",
             "data_type": "string",
             "required": true,
             "order": 0
         },
-        "auth_type": {
-            "description": "Type of Authentication",
-            "data_type": "string",
-            "required": true,
-            "order": 1,
-            "value_list": [
-                "Domain",
-                "Cloud",
-                "Bypass (Access Key)"
-            ]
-        },
-        "username": {
-            "description": "Username for Domain or Cloud Authentication",
-            "data_type": "string",
-            "order": 2
-        },
-        "password": {
-            "description": "Password for Domain or Cloud Authentication",
-            "data_type": "password",
-            "order": 3
-        },
-        "app_id": {
-            "description": "Mimecast App ID",
-            "data_type": "string",
-            "required": true,
-            "order": 4
-        },
-        "app_key": {
-            "description": "Mimecast App Key",
+        "client_secret": {
+            "description": "Client Secret (API 2.0 Application)",
             "data_type": "password",
             "required": true,
-            "order": 5
-        },
-        "access_key": {
-            "description": "Mimecast Access Key for Bypass Authentication",
-            "data_type": "password",
-            "order": 6
-        },
-        "secret_key": {
-            "description": "Mimecast Secret Key for Bypass Authentication",
-            "data_type": "password",
-            "order": 7
+            "order": 1
         }
     },
     "actions": [
