@@ -77,14 +77,16 @@ class MimecastConnector(BaseConnector):
             self._access_token = token_data.get("access_token")
             expires_in = token_data.get("expires_in", 3600)  # Default 1 hour if not specified
             self._token_expires_at = datetime.utcnow() + timedelta(seconds=expires_in)
+            ret_val = self._save_encrypted_token_to_state(action_result)
+
+            if ret_val:
+                return action_result.set_status(phantom.APP_ERROR, ret_val)
 
             # Save token info to state
             try:
-                self._state["access_token"] = encryption_helper.encrypt(self._access_token, self._asset_id)
-                self._state["token_expires_at"] = self._token_expires_at.isoformat()
                 self.save_state(self._state)
             except Exception as e:
-                self.debug_print(f"Error saving token to state: {e!s}")
+                return action_result.set_status(phantom.APP_ERROR, f"Error saving token to state: {e!s}")
 
             return phantom.APP_SUCCESS
 
@@ -99,11 +101,13 @@ class MimecastConnector(BaseConnector):
         # Add buffer time of 5 minutes before expiration
         return datetime.utcnow() < (self._token_expires_at - timedelta(minutes=5))
 
-    def _reset_state_file(self):
+    def _reset_state(self):
+        """Reset the state to its default format
+
+        This method is used to reset the state back to its default format. This is useful
+        when the state becomes corrupted.
         """
-        This method resets the state file.
-        """
-        self.debug_print("Resetting the state file with the default format")
+        self.debug_print("Resetting the state with the default format")
         self._state = {"app_version": self.get_app_json().get("app_version")}
 
     def _process_empty_response(self, response, action_result):
@@ -918,35 +922,57 @@ class MimecastConnector(BaseConnector):
         # that needs to be accessed across actions
         self._state = self.load_state()
         if not isinstance(self._state, dict):
-            self._reset_state_file()
+            self._reset_state()
 
         config = self.get_config()
         self._base_url = config.get("base_url", MIMECAST_API_BASE_URL_DEFAULT)
         self._client_id = config["client_id"]
         self._client_secret = config["client_secret"]
         self._asset_id = self.get_asset_id()
+        self._access_token = None
+        self._token_expires_at = None
 
-        # Try to load token from state
+        if self._state.get("access_token"):
+            self._decrypt_token()
+
+        return phantom.APP_SUCCESS
+
+    def _save_encrypted_token_to_state(self):
+        """
+        Encrypts the access token and saves it to the state, along with the expiration time
+
+        Returns:
+            None if successful, otherwise an error message
+        """
         try:
-            if self._state.get("access_token"):
-                self._access_token = encryption_helper.decrypt(self._state["access_token"], self._asset_id)
-                self._token_expires_at = datetime.fromisoformat(self._state.get("token_expires_at", ""))
+            self._state["access_token"] = encryption_helper.encrypt(self._access_token, self._asset_id)
+            if self._token_expires_at:
+                self._state["token_expires_at"] = self._token_expires_at.isoformat()
+        except Exception as e:
+            self._reset_state()
+            return f"Error occurred while encoding token to state : {e!s}"
+
+        return None
+
+    def _decrypt_token(self):
+        """
+        Decrypts the access token stored in the state, and loads it into the object instance.
+
+        Returns:
+            None
+        """
+        try:
+            self._access_token = encryption_helper.decrypt(self._state["access_token"], self._asset_id)
+            self._token_expires_at = datetime.fromisoformat(self._state.get("token_expires_at", ""))
         except Exception as e:
             self.debug_print(f"Error loading token from state: {e!s}")
-            self._access_token = None
-            self._token_expires_at = None
-        return phantom.APP_SUCCESS
 
     def finalize(self):
         # Save the state, this data is saved across actions and app upgrades
         if self._access_token:
-            try:
-                self._state["access_token"] = encryption_helper.encrypt(self._access_token, self._asset_id)
-                if self._token_expires_at:
-                    self._state["token_expires_at"] = self._token_expires_at.isoformat()
-            except Exception as e:
-                self.debug_print(f"Error saving token to state: {e!s}")
-                self._state = {"app_version": self.get_app_json().get("app_version")}
+            ret_val = self._save_encrypted_token_to_state(self.get_action_result())
+            if ret_val:
+                self.debug_print(ret_val)
 
         self.save_state(self._state)
         return phantom.APP_SUCCESS
