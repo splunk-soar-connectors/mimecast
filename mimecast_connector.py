@@ -77,7 +77,7 @@ class MimecastConnector(BaseConnector):
             self._access_token = token_data.get("access_token")
             expires_in = token_data.get("expires_in", 3600)  # Default 1 hour if not specified
             self._token_expires_at = datetime.utcnow() + timedelta(seconds=expires_in)
-            ret_val = self._save_encrypted_token_to_state(action_result)
+            ret_val = self._save_encrypted_token_to_state()
 
             if ret_val:
                 return action_result.set_status(phantom.APP_ERROR, ret_val)
@@ -970,7 +970,7 @@ class MimecastConnector(BaseConnector):
     def finalize(self):
         # Save the state, this data is saved across actions and app upgrades
         if self._access_token:
-            ret_val = self._save_encrypted_token_to_state(self.get_action_result())
+            ret_val = self._save_encrypted_token_to_state()
             if ret_val:
                 self.debug_print(ret_val)
 
