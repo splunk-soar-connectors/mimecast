@@ -1,7 +1,7 @@
 # Mimecast
 
 Publisher: Splunk \
-Connector Version: 2.3.7 \
+Connector Version: 3.0.0 \
 Product Vendor: Mimecast \
 Product Name: Mimecast \
 Minimum Product Version: 6.3.0
