@@ -4,7 +4,7 @@ Publisher: Splunk \
 Connector Version: 2.3.7 \
 Product Vendor: Mimecast \
 Product Name: Mimecast \
-Minimum Product Version: 5.2.0
+Minimum Product Version: 6.3.0
 
 This app integrates with an instance of Mimecast to perform generic, investigative, and containment actions
 
@@ -38,27 +38,14 @@ License (Dual License), Copyright (c) Gustavo Niemeyer.
 
 ## Authorization
 
-To create an API application and user association key ('Access Key' and 'Secret Key' for bypass
-authentication), please refer to the [Mimecast
-document](https://community.mimecast.com/s/article/Managing-API-Applications-505230018) .
+To create an API 2.0 application and obtain the Client ID and Client Secret, please refer to the [Mimecast documentation](https://mimecastsupport.zendesk.com/hc/en-us/articles/34000360548755-API-Integrations-Managing-API-2-0-for-Cloud-Gateway#h_01JK62GWQ91FX2VPS7EWE3M9RX).
 
-For the 'Mimecast Base URL' configuration field, please refer to the [Global Base
-URLS](https://integrations.mimecast.com/documentation/api-overview/global-base-urls/) article. You
-can select URL based on your Mimecast region.
-
-The app uses key-based authentication. For the "Bypass" authentication, the keys provided by the
-user are considered. For the "Domain" and "Cloud" authentication, the 'test connectivity' action
-fetches new keys in exchange for the provided username and password. The app uses these keys for
-authentication. The newly fetched keys are encrypted and stored in the state file for future use. If
-the stored keys expire or get corrupted, the app automatically generates a new one.
+For the Mimecast Base URL configuration field, the default is the Global URL. If you're using a US or UK instance, please refer to the [Mimecast API migration guide](https://developer.services.mimecast.com/api-1-0-to-2-0-migration-guide#step2) to select the appropriate base URL based on your Mimecast region.
 
 ## Points to remember while connecting to Mimecast
 
 - **IP Range Restrictions:** Be sure to enable your Mimecast to accept communication with the IP
   address of your Splunk SOAR server(s).
-- **Two Factor Authentication:** Mimecast supports optional two-factor authentication. Two-factor
-  authentication should be disabled for the account that handles API interactions with Splunk SOAR
-  in order to use 'Cloud' or 'Domain' authentication.
 
 **Note:** The 'unblocklist url' and 'unallowlist url' actions use the same API endpoint and action
 parameter to remove the URL from the blocklist and allowlist. Hence, removing the URL from the
@@ -80,14 +67,9 @@ This table lists the configuration variables required to operate Mimecast. These
 
 VARIABLE | REQUIRED | TYPE | DESCRIPTION
 -------- | -------- | ---- | -----------
-**base_url** | required | string | Mimecast Base URL |
-**auth_type** | required | string | Type of Authentication |
-**username** | optional | string | Username for Domain or Cloud Authentication |
-**password** | optional | password | Password for Domain or Cloud Authentication |
-**app_id** | required | string | Mimecast App ID |
-**app_key** | required | password | Mimecast App Key |
-**access_key** | optional | password | Mimecast Access Key for Bypass Authentication |
-**secret_key** | optional | password | Mimecast Secret Key for Bypass Authentication |
+**base_url** | required | string | Mimecast Base URL e.g. https://api.services.mimecast.com |
+**client_id** | required | string | Client ID (API 2.0 Application) |
+**client_secret** | required | password | Client Secret (API 2.0 Application) |
 
 ### Supported Actions
 
