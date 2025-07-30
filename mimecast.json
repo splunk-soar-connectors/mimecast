@@ -10,10 +10,13 @@
     "product_version_regex": ".*",
     "publisher": "Splunk",
     "license": "Copyright (c) 2019-2025 Splunk Inc.",
-    "app_version": "3.0.0",
-    "python_version": ["3.9", "3.13"],
+    "app_version": "3.0.1",
+    "python_version": [
+        "3.9",
+        "3.13"
+    ],
     "fips_compliant": true,
-    "utctime_updated": "2025-06-12T07:49:59.058759Z",
+    "utctime_updated": "2025-07-30T17:49:51.789648Z",
     "package_name": "phantom_mimecast",
     "main_module": "mimecast_connector.py",
     "min_phantom_version": "6.3.0",
