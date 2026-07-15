@@ -9,7 +9,7 @@
     "product_name": "Mimecast",
     "product_version_regex": ".*",
     "publisher": "Splunk",
-    "license": "Copyright (c) 2019-2025 Splunk Inc.",
+    "license": "Copyright (c) 2019-2026 Splunk Inc.",
     "app_version": "3.0.2",
     "python_version": "3.9, 3.13",
     "fips_compliant": true,
@@ -40,6 +40,13 @@
             "data_type": "password",
             "required": true,
             "order": 2
+        },
+        "verify_server_cert": {
+            "description": "Verify the TLS certificate presented by the Mimecast server",
+            "data_type": "boolean",
+            "default": true,
+            "required": false,
+            "order": 3
         }
     },
     "actions": [

@@ -1,6 +1,6 @@
 # File: mimecast_consts.py
 #
-# Copyright (c) 2019-2025 Splunk Inc.
+# Copyright (c) 2019-2026 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ MIMECAST_ERR_INVALID_INT = "Please provide a valid integer value in the '{key}' 
 MIMECAST_ERR_NEGATIVE_AND_ZERO_INT = "Please provide a valid non-zero positive integer value in the '{key}' parameter"
 MIMECAST_ERR_NEGATIVE_INT = "Please provide a valid non-negative integer value in the '{key}' parameter"
 DEFAULT_MAX_RESULTS = 100
+DEFAULT_MAX_PAGES = 1000
 DEFAULT_TIMEOUT = 30
 MIMECAST_ERR_CODE_UNAVAILABLE = "Error code unavailable"
 MIMECAST_ERR_MSG_UNKNOWN = "Unknown error occurred. Please check the asset configuration and|or action parameters"
@@ -27,6 +28,7 @@ MIMECAST_ERR_CONNECTING_SERVER = "Error Connecting to the Mimecast server. Detai
 MIMECAST_ERR_TEST_CONN_FAILED = "Test Connectivity Failed"
 MIMECAST_SUCC_TEST_CONN_PASSED = "Test Connectivity Passed"
 MIMECAST_ERR_PROCESSING_RESPONSE = "Error occurred while processing the response from the server"
+MIMECAST_ERR_PAGINATION = "Pagination stopped because the server returned a repeated token or exceeded the page limit"
 MIMECAST_SUCC_REMOVE_MEMBER = "Successfully removed member from group"
 MIMECAST_SUCC_ADD_MEMBER = "Successfully added member to group"
 MIMECAST_SUCC_ALLOW_URL = "Successfully added URL to the allowlist"

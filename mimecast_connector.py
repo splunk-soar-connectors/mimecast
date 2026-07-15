@@ -1,6 +1,6 @@
 # File: mimecast_connector.py
 #
-# Copyright (c) 2019-2025 Splunk Inc.
+# Copyright (c) 2019-2026 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ class MimecastConnector(BaseConnector):
                 f"{self._base_url}{MIMECAST_API_PATH_OAUTH_TOKEN}",
                 headers=headers,
                 data=data,
-                verify=self.get_config().get("verify_server_cert", False),
+                verify=self.get_config().get("verify_server_cert", True),
                 timeout=DEFAULT_TIMEOUT,
             )
 
@@ -262,8 +262,13 @@ class MimecastConnector(BaseConnector):
 
         response = {}
         count = 0
+        page_count = 0
+        seen_tokens = set()
 
         while True:
+            page_count += 1
+            if page_count > DEFAULT_MAX_PAGES:
+                return action_result.set_status(phantom.APP_ERROR, MIMECAST_ERR_PAGINATION), response
             ret_val, interim_response = self._make_rest_call_helper(endpoint, action_result, headers=headers, method=method, data=data, **kwargs)
 
             if phantom.is_fail(ret_val):
@@ -292,6 +297,9 @@ class MimecastConnector(BaseConnector):
             next_token = interim_response["meta"]["pagination"].get("next")
 
             if next_token:
+                if next_token in seen_tokens:
+                    return action_result.set_status(phantom.APP_ERROR, MIMECAST_ERR_PAGINATION), response
+                seen_tokens.add(next_token)
                 data["meta"]["pagination"]["pageToken"] = next_token
             else:
                 break
@@ -322,7 +330,7 @@ class MimecastConnector(BaseConnector):
                 url,
                 headers=headers,
                 json=data,
-                verify=self.get_config().get("verify_server_cert", False),
+                verify=self.get_config().get("verify_server_cert", True),
                 params=params,
                 timeout=DEFAULT_TIMEOUT,
             )
@@ -341,7 +349,7 @@ class MimecastConnector(BaseConnector):
                     url,
                     headers=headers,
                     json=data,
-                    verify=self.get_config().get("verify_server_cert", False),
+                    verify=self.get_config().get("verify_server_cert", True),
                     params=params,
                     timeout=DEFAULT_TIMEOUT,
                 )
@@ -701,9 +709,14 @@ class MimecastConnector(BaseConnector):
             search_type = "emailAddress"
 
         data = {"meta": {"pagination": {"pageToken": None, "pageSize": DEFAULT_MAX_RESULTS}}, "data": [{"id": param["id"]}]}
+        page_count = 0
+        seen_tokens = set()
 
         # Mimecast API only returns a maximum of 100 results. Looping is needed for groups with 100+ members
         while True:
+            page_count += 1
+            if page_count > DEFAULT_MAX_PAGES:
+                return action_result.set_status(phantom.APP_ERROR, MIMECAST_ERR_PAGINATION)
             ret_val, response = self._make_rest_call_helper(MIMECAST_API_PATH_GROUP_MEMBERS, action_result, method="post", data=data)
 
             if phantom.is_fail(ret_val):
@@ -727,6 +740,9 @@ class MimecastConnector(BaseConnector):
                 summary["status"] = "Member does not exist"
                 return action_result.set_status(phantom.APP_SUCCESS)
             else:
+                if next_token in seen_tokens:
+                    return action_result.set_status(phantom.APP_ERROR, MIMECAST_ERR_PAGINATION)
+                seen_tokens.add(next_token)
                 data["meta"]["pagination"]["pageToken"] = next_token
 
     def _handle_run_query(self, param):
