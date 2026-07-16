@@ -1,9 +1,9 @@
 # Mimecast
 
-Publisher: Splunk \
-Connector Version: 3.0.2 \
-Product Vendor: Mimecast \
-Product Name: Mimecast \
+Publisher: Splunk <br>
+Connector Version: 3.0.2 <br>
+Product Vendor: Mimecast <br>
+Product Name: Mimecast <br>
 Minimum Product Version: 6.3.0
 
 This app integrates with an instance of Mimecast to perform generic, investigative, and containment actions
@@ -70,31 +70,32 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 **base_url** | required | string | Mimecast Base URL e.g. https://api.services.mimecast.com |
 **client_id** | required | string | Client ID (API 2.0 Application) |
 **client_secret** | required | password | Client Secret (API 2.0 Application) |
+**verify_server_cert** | optional | boolean | Verify the TLS certificate presented by the Mimecast server |
 
 ### Supported Actions
 
-[test connectivity](#action-test-connectivity) - Validate the asset configuration for connectivity using supplied configuration \
-[blocklist url](#action-blocklist-url) - Adds URL to a managed URL blocklist \
-[add member](#action-add-member) - Add a sender or domain to a Mimecast group \
-[remove member](#action-remove-member) - Remove a sender or domain from a Mimecast group \
-[blocklist sender](#action-blocklist-sender) - Blocks a specific sender and recipient in Mimecast \
-[allowlist sender](#action-allowlist-sender) - Allows a specific sender and recipient in Mimecast \
-[allowlist url](#action-allowlist-url) - Adds URL to a managed URL allowlist \
-[unblocklist url](#action-unblocklist-url) - Removes URL from a managed URL blocklist \
-[unallowlist url](#action-unallowlist-url) - Removes URL from a managed URL allowlist \
-[list urls](#action-list-urls) - Lists all managed URLs from the black/white list \
-[list groups](#action-list-groups) - Lists all Mimecast groups matching the requested search criteria \
-[list members](#action-list-members) - Lists the members of a specified Mimecast group \
-[find member](#action-find-member) - Finds a member of a specified Mimecast group \
-[run query](#action-run-query) - Get emails across the Mimecast platform \
-[get email](#action-get-email) - Returns message information for a tracked email \
+[test connectivity](#action-test-connectivity) - Validate the asset configuration for connectivity using supplied configuration <br>
+[blocklist url](#action-blocklist-url) - Adds URL to a managed URL blocklist <br>
+[add member](#action-add-member) - Add a sender or domain to a Mimecast group <br>
+[remove member](#action-remove-member) - Remove a sender or domain from a Mimecast group <br>
+[blocklist sender](#action-blocklist-sender) - Blocks a specific sender and recipient in Mimecast <br>
+[allowlist sender](#action-allowlist-sender) - Allows a specific sender and recipient in Mimecast <br>
+[allowlist url](#action-allowlist-url) - Adds URL to a managed URL allowlist <br>
+[unblocklist url](#action-unblocklist-url) - Removes URL from a managed URL blocklist <br>
+[unallowlist url](#action-unallowlist-url) - Removes URL from a managed URL allowlist <br>
+[list urls](#action-list-urls) - Lists all managed URLs from the black/white list <br>
+[list groups](#action-list-groups) - Lists all Mimecast groups matching the requested search criteria <br>
+[list members](#action-list-members) - Lists the members of a specified Mimecast group <br>
+[find member](#action-find-member) - Finds a member of a specified Mimecast group <br>
+[run query](#action-run-query) - Get emails across the Mimecast platform <br>
+[get email](#action-get-email) - Returns message information for a tracked email <br>
 [decode url](#action-decode-url) - Decodes URL that was rewritten by Mimecast for on-click protection
 
 ## action: 'test connectivity'
 
 Validate the asset configuration for connectivity using supplied configuration
 
-Type: **test** \
+Type: **test** <br>
 Read only: **True**
 
 #### Action Parameters
@@ -109,7 +110,7 @@ No Output
 
 Adds URL to a managed URL blocklist
 
-Type: **contain** \
+Type: **contain** <br>
 Read only: **False**
 
 #### Action Parameters
@@ -159,7 +160,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Add a sender or domain to a Mimecast group
 
-Type: **contain** \
+Type: **contain** <br>
 Read only: **False**
 
 #### Action Parameters
@@ -190,7 +191,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Remove a sender or domain from a Mimecast group
 
-Type: **correct** \
+Type: **correct** <br>
 Read only: **False**
 
 #### Action Parameters
@@ -221,7 +222,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Blocks a specific sender and recipient in Mimecast
 
-Type: **contain** \
+Type: **contain** <br>
 Read only: **False**
 
 #### Action Parameters
@@ -259,7 +260,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Allows a specific sender and recipient in Mimecast
 
-Type: **contain** \
+Type: **contain** <br>
 Read only: **False**
 
 #### Action Parameters
@@ -289,7 +290,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Adds URL to a managed URL allowlist
 
-Type: **contain** \
+Type: **contain** <br>
 Read only: **False**
 
 #### Action Parameters
@@ -335,7 +336,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Removes URL from a managed URL blocklist
 
-Type: **correct** \
+Type: **correct** <br>
 Read only: **False**
 
 #### Action Parameters
@@ -368,7 +369,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Removes URL from a managed URL allowlist
 
-Type: **correct** \
+Type: **correct** <br>
 Read only: **False**
 
 #### Action Parameters
@@ -393,7 +394,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Lists all managed URLs from the black/white list
 
-Type: **investigate** \
+Type: **investigate** <br>
 Read only: **True**
 
 #### Action Parameters
@@ -437,7 +438,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Lists all Mimecast groups matching the requested search criteria
 
-Type: **investigate** \
+Type: **investigate** <br>
 Read only: **True**
 
 Here, page_size parameter is working as max_results parameter meaning it will return the max number of result provided.
@@ -480,7 +481,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Lists the members of a specified Mimecast group
 
-Type: **investigate** \
+Type: **investigate** <br>
 Read only: **True**
 
 Here, page_size parameter is working as max_results parameter meaning it will return the max number of result provided.
@@ -525,7 +526,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Finds a member of a specified Mimecast group
 
-Type: **investigate** \
+Type: **investigate** <br>
 Read only: **True**
 
 #### Action Parameters
@@ -566,7 +567,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Get emails across the Mimecast platform
 
-Type: **investigate** \
+Type: **investigate** <br>
 Read only: **True**
 
 Either from, to, subject, or sender_ip parameter must be filled out.
@@ -631,7 +632,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Returns message information for a tracked email
 
-Type: **investigate** \
+Type: **investigate** <br>
 Read only: **True**
 
 #### Action Parameters
@@ -1156,7 +1157,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Decodes URL that was rewritten by Mimecast for on-click protection
 
-Type: **investigate** \
+Type: **investigate** <br>
 Read only: **True**
 
 #### Action Parameters
@@ -1190,7 +1191,7 @@ ______________________________________________________________________
 
 Auto-generated Splunk SOAR Connector documentation.
 
-Copyright 2025 Splunk Inc.
+Copyright 2026 Splunk Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
